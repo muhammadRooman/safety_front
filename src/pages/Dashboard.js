@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Card, Row, Col, Container } from "react-bootstrap";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -10,7 +10,6 @@ import { HiUsers } from "react-icons/hi2";
 import {
    FaRedo,FaChalkboardTeacher
 } from "react-icons/fa";
-const API_BASE = "http://localhost:8082/api";
 const Dashboard = () => {
   const { t } = useTranslation(); // 📌 Hook from i18next
   const navigate = useNavigate();
@@ -19,13 +18,13 @@ const Dashboard = () => {
   const token = useSelector((state) => state.auth.token);
 
 
-  const fetchVideos = async () => {
+  const fetchVideos = useCallback(async () => {
     try {
       // role ke hisaab se endpoint choose karo
       const endpoint =
         user?.role === "teacher"
-          ? `${API_BASE}/admin/courseVideo`
-          : `${API_BASE}/admin/courseVideo/my-videos`;
+          ? `${process.env.REACT_APP_BASE_ADMIN_API}/admin/courseVideo`
+          : `${process.env.REACT_APP_BASE_ADMIN_API}/admin/courseVideo/my-videos`;
   
       const res = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
@@ -36,14 +35,14 @@ const Dashboard = () => {
     } catch (err) {
       toast.error(err.response?.data?.message || t("error_fetching_user"));
     }
-  };
+  }, [token, t, user?.role]);
   
 
   useEffect(() => {
     fetchVideos();
-  }, [user?.role]);
+  }, [fetchVideos]);
 
-  const fetchUserDetails = async () => {
+  const fetchUserDetails = useCallback(async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_BASE_ADMIN_API}/auth/userDetails`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -53,11 +52,11 @@ const Dashboard = () => {
     } catch (err) {
       toast.error(err.response?.data?.message || t("error_fetching_user"));
     }
-  };
+  }, [token, t]);
 
   useEffect(() => {
     fetchUserDetails();
-  }, []);
+  }, [fetchUserDetails]);
 
   const handleClick = () => {
     if (user?.role === "teacher") {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoMdAdd } from "react-icons/io";
 import Select from "react-select";
@@ -28,7 +28,6 @@ import { FaDownload } from "react-icons/fa";
 export default function StudentEnrollList() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const id = useSelector((state) => state.auth.id);
   const token = useSelector((state) => state.auth.token);
 
   // States
@@ -74,7 +73,7 @@ export default function StudentEnrollList() {
   ];
 
   // Fetch User
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BASE_ADMIN_API}/auth/userDetails`,
@@ -84,10 +83,10 @@ export default function StudentEnrollList() {
     } catch (err) {
       toast.error("Error fetching user");
     }
-  };
+  }, [token]);
 
   // Fetch Students
-  const fetchBlogs = async (role) => {
+  const fetchBlogs = useCallback(async (role) => {
     try {
       let response;
       if (role === "teacher") {
@@ -106,11 +105,11 @@ export default function StudentEnrollList() {
     } catch (err) {
       toast.error("Error fetching students");
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     fetchUser();
-  }, []);
+  }, [fetchUser]);
 
   // Listen to socket events for online students so status shows in enroll list
   useEffect(() => {
@@ -148,13 +147,13 @@ export default function StudentEnrollList() {
     return () => {
       s.disconnect();
     };
-  }, [token]);
+  }, [SOCKET_URL, token]);
 
   useEffect(() => {
     if (user?.role) {
       fetchBlogs(user.role);
     }
-  }, [user]);
+  }, [fetchBlogs, user]);
 
   // Filtered Items
   const filteredItems = blogs.filter((item) => {

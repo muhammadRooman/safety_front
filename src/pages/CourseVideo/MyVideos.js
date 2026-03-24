@@ -8,14 +8,11 @@ import {
   Card,
   Row,
   Col,
-  Button,
   Breadcrumb,
   Badge,
   Tabs,
   Tab,
 } from "react-bootstrap";
-
-const API_BASE = "http://localhost:8082/api";
 
 export default function MyVideos() {
   const navigate = useNavigate();
@@ -56,8 +53,6 @@ export default function MyVideos() {
   }, {});
 
   const courseOrder = ["NEBOSH", "IOSH", "OSHA","RIGGER3"];
-  const tabs = ["all", ...courseOrder.filter((c) => byCourse[c]?.length)];
-
   const displayVideos = activeTab === "all" ? videos : (byCourse[activeTab] || []);
 
   return (

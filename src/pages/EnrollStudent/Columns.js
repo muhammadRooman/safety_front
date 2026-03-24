@@ -1,5 +1,5 @@
  "use client";
-import { Button, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import { MdEdit, MdDelete } from "react-icons/md";
 import { BsSendPlus } from "react-icons/bs";
 

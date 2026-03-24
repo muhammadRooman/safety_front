@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Nav, Modal, Badge } from 'react-bootstrap';
+import { Nav, Modal } from 'react-bootstrap';
 import { io } from "socket.io-client";
 import { SiGooglemeet } from "react-icons/si";
 import { useSelector, useDispatch } from 'react-redux';
-import { PiCertificateBold } from "react-icons/pi";
 import axios from 'axios';
 import {
   FaSignOutAlt,
@@ -14,7 +13,6 @@ import {
   FaInfoCircle,
 } from 'react-icons/fa';
 import { HiUsers } from 'react-icons/hi2';
-import { LuMessageSquareText } from 'react-icons/lu';
 import { logout } from '../redux/Auth/AuthSlice';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -33,8 +31,6 @@ const Sidebar = () => {
   const [user, setUser] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [adminUnreadTotal, setAdminUnreadTotal] = useState(0);
-  const [studentHasAlert, setStudentHasAlert] = useState(false);
 
   const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "http://localhost:8082";
 
@@ -93,7 +89,6 @@ const Sidebar = () => {
             `studentMessagesAlert_${studentId}`,
             "true"
           );
-          setStudentHasAlert(true);
         } catch (e) {
           console.error("Failed to handle receive-message for student in sidebar", e);
         }
@@ -129,7 +124,6 @@ const Sidebar = () => {
           (sum, val) => sum + (Number(val) || 0),
           0
         );
-        setAdminUnreadTotal(total);
       } catch (e) {
         console.error("Failed to handle admin-alert in sidebar", e);
       }
@@ -156,7 +150,6 @@ const Sidebar = () => {
           `studentMessagesAlert_${studentId}`,
           "true"
         );
-        setStudentHasAlert(true);
       } catch (e) {
         console.error("Failed to handle student-alert in sidebar", e);
       }
@@ -165,51 +158,7 @@ const Sidebar = () => {
     return () => {
       s.disconnect();
     };
-  }, [token, user?.role, studentId]);
-
-  // Poll admin unread counts from localStorage so sidebar badge stays updated
-  useEffect(() => {
-    const readAdminUnread = () => {
-      try {
-        const stored = localStorage.getItem("adminMessagesUnread");
-        if (!stored) {
-          setAdminUnreadTotal(0);
-          return;
-        }
-        const obj = JSON.parse(stored);
-        const total = Object.values(obj || {}).reduce(
-          (sum, val) => sum + (Number(val) || 0),
-          0
-        );
-        setAdminUnreadTotal(total);
-      } catch (e) {
-        console.error("Failed to read adminMessagesUnread", e);
-      }
-    };
-
-    readAdminUnread();
-    const id = setInterval(readAdminUnread, 3000);
-    return () => clearInterval(id);
-  }, []);
-
-  // Poll student alert flag from localStorage
-  useEffect(() => {
-    if (!studentId) return;
-
-    const readStudentAlert = () => {
-      try {
-        const flag =
-          localStorage.getItem(`studentMessagesAlert_${studentId}`) === "true";
-        setStudentHasAlert(flag);
-      } catch (e) {
-        console.error("Failed to read studentMessagesAlert", e);
-      }
-    };
-
-    readStudentAlert();
-    const id = setInterval(readStudentAlert, 3000);
-    return () => clearInterval(id);
-  }, [studentId]);
+  }, [SOCKET_URL, token, user?.role, studentId]);
 
   // Close on outside click (mobile)
   useEffect(() => {
