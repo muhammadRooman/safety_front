@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Nav, Modal } from 'react-bootstrap';
+import { Nav, Modal, Badge } from 'react-bootstrap';
 import { io } from "socket.io-client";
 import { SiGooglemeet } from "react-icons/si";
 import { useSelector, useDispatch } from 'react-redux';
@@ -17,14 +17,15 @@ import { logout } from '../redux/Auth/AuthSlice';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import { LuNotebookPen } from "react-icons/lu";
+import { LuMessageSquareText, LuNotebookPen } from "react-icons/lu";
 
 const Sidebar = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  const [adminUnreadTotal, setAdminUnreadTotal] = useState(0);
+  const [studentHasAlert, setStudentHasAlert] = useState(false);
   const token = useSelector((state) => state.auth.token);
   const studentId = useSelector((state) => state.auth.id);
 
@@ -53,7 +54,17 @@ const Sidebar = () => {
     };
     if (token) fetchUser();
   }, [token, t]);
-
+  useEffect(() => {
+    if (location.pathname === "/dashboard/messages") {
+      localStorage.removeItem("adminMessagesUnread");
+      setAdminUnreadTotal(0);
+    }
+  
+    if (location.pathname === "/dashboard/student-chat" && studentId) {
+      localStorage.removeItem(`studentMessagesAlert_${studentId}`);
+      setStudentHasAlert(false);
+    }
+  }, [location.pathname, studentId]);
   // Socket listener for global message alerts (admin & student)
   useEffect(() => {
     if (!token) return;
@@ -289,7 +300,7 @@ const Sidebar = () => {
               >
                 <FaFilm className="me-3" /> {t('COURSE_VIDEOS')}
               </Nav.Link>
-{/**
+
               <Nav.Link
                 as={Link}
                 to="/dashboard/ohs_course_manage"
@@ -298,17 +309,18 @@ const Sidebar = () => {
               >
                 <LuNotebookPen  size={25} className="me-3" /> Manage Courses
               </Nav.Link>
-*/}
-              {
-                /**   // <Nav.Link
-              //   as={Link}
-              //   to="/dashboard/contact_us"
-              //   className={`sidebar-link ${isActive('/dashboard/contact_us') ? 'active' : ''}`}
-              //   onClick={closeSidebar}
-              // >
-              //   <LuMessageSquareText size={25} className="me-3" /> {t('Contect_us')}
-              // </Nav.Link> */
-              }
+
+             { /**
+              { 
+               <Nav.Link
+                as={Link}
+              to="/dashboard/contact_us"
+             className={`sidebar-link ${isActive('/dashboard/contact_us') ? 'active' : ''}`}
+              onClick={closeSidebar}
+           >
+              <LuMessageSquareText size={25} className="me-3" /> {t('Contect_us')}
+            </Nav.Link> 
+              }  */}
             
 
               <Nav.Link
@@ -319,7 +331,7 @@ const Sidebar = () => {
               >
                 <FaChalkboardTeacher size={25} className="me-3" /> {t('TEACHERS')}
               </Nav.Link>
-{/** 
+
   
  
               <Nav.Link
@@ -341,7 +353,7 @@ const Sidebar = () => {
                   </Badge>
                 )}
               </Nav.Link>
- */}
+
               <Nav.Link
                 as={Link}
                 to="/dashboard/teacher-info"
@@ -383,7 +395,7 @@ const Sidebar = () => {
               >
                 <LuNotebookPen size={25} className="me-3" /> {t('ohs_course')}
               </Nav.Link>
- {/** 
+ 
               <Nav.Link
                 as={Link}
                 to="/dashboard/student-chat"
@@ -403,7 +415,7 @@ const Sidebar = () => {
                   </Badge>
                 )}
               </Nav.Link>
-*/}
+
               <Nav.Link
                 as={Link}
                 to="/dashboard/teacher-info"

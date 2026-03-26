@@ -158,17 +158,20 @@ const AppRoutes = () => {
             }
           />
            
+          {/** 
           {
-            /**   <Route
+             <Route
             path="dashboard/contact_us/"
             element={
               <PrivateRoute>
                 <ContactUs />
               </PrivateRoute>
             }
-          />  */
-          }
+          />  
+          } */}
            
+          {
+            /** 
             <Route
             path="dashboard/contact_us/"
             element={
@@ -176,7 +179,8 @@ const AppRoutes = () => {
                 <ContactUs />
               </PrivateRoute>
             }
-          />
+          />*/
+          }
           <Route
             path="dashboard/teacher_enroll"
             element={
@@ -217,7 +221,7 @@ const AppRoutes = () => {
               </PrivateRoute>
             }
           />
-          {/** 
+          {
           <Route
             path="dashboard/ohs_course_manage"
             element={
@@ -225,7 +229,7 @@ const AppRoutes = () => {
                 <OHSCourseManage />
               </PrivateRoute>
             }
-          />*/}
+          />}
           <Route
             path="dashboard/assignment/create"
             element={
@@ -274,7 +278,7 @@ const AppRoutes = () => {
               </PrivateRoute>
             }
           />
-          {/** 
+         
           <Route
             path="dashboard/messages"
             element={
@@ -283,7 +287,7 @@ const AppRoutes = () => {
               </PrivateRoute>
             }
           />
-          */}
+       
           <Route
             path="dashboard/teacher-info"
             element={
