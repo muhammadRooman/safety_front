@@ -37,7 +37,7 @@ const TeacherInfoList = () => {
 
   const getMediaSrc = (fileName) => {
     if (!fileName) return "";
-    return `${backendOrigin}/uploads/${fileName}`;
+    return `${backendOrigin}/${fileName}`;
   };
 
   const fetchUser = async () => {
