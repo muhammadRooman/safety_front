@@ -13,7 +13,7 @@ import {
 } from "react-bootstrap";
 import { toast } from "react-toastify";
 
-const backendOrigin = (process.env.REACT_APP_SOCKET_URL || "http://localhost:8082").replace(/\/$/, "");
+const backendOrigin = (process.env.REACT_APP_BASE_uploads || "http://localhost:8082").replace(/\/$/, "");
 
 const TeacherInfoList = () => {
   const token = useSelector((state) => state.auth.token);
