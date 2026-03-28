@@ -47,7 +47,9 @@ function Login() {
   const onSubmit = async (data) => {
     setLoader(true);
     try {
-      const response = await PublicApi.post(`${ENV.appBaseUrl}/auth/login`, data);
+      const response = await PublicApi.post(`${ENV.appBaseUrl}/auth/login`, data,{
+          withCredentials: true
+      });
       console.log("login respo", response);
 
       if (response?.data?.success) {
