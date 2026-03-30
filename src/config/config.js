@@ -51,6 +51,13 @@
 // with persist
 
 export const ENV = {
-    appBaseUrl: process.env.REACT_APP_BASE_ADMIN_API,
+    appBaseUrl: (() => {
+        const raw = (process.env.REACT_APP_BASE_ADMIN_API || "").trim();
+        // Safety fallback: old Vercel backend causes CORS for current frontend.
+        if (!raw || raw.includes("saftey-backend.vercel.app")) {
+            return "https://saftey-backend.onrender.com/api";
+        }
+        return raw;
+    })(),
 };
 
