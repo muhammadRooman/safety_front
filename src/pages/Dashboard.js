@@ -5,49 +5,28 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FaFilm } from "react-icons/fa6";
+import { FaFilm, FaRedo, FaChalkboardTeacher } from "react-icons/fa";
 import { HiUsers } from "react-icons/hi2";
-import {
-   FaRedo,FaChalkboardTeacher
-} from "react-icons/fa";
+
 const Dashboard = () => {
-  const { t } = useTranslation(); // 📌 Hook from i18next
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [fectchVedios, setFectchVedios] = useState([]);
+  const [videosCount, setVideosCount] = useState(0);
+  const [enrollTeacherCount, setEnrollTeacherCount] = useState(0);
+  const [studentsCount, setStudentsCount] = useState(0);
+
   const token = useSelector((state) => state.auth.token);
 
-
-  const fetchVideos = useCallback(async () => {
-    try {
-      // role ke hisaab se endpoint choose karo
-      const endpoint =
-        user?.role === "teacher"
-          ? `${process.env.REACT_APP_BASE_ADMIN_API}/admin/courseVideo`
-          : `${process.env.REACT_APP_BASE_ADMIN_API}/admin/courseVideo/my-videos`;
-  
-      const res = await axios.get(endpoint, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-  
-      console.log("!!!", res.data);
-      setFectchVedios(res.data);
-    } catch (err) {
-      toast.error(err.response?.data?.message || t("error_fetching_user"));
-    }
-  }, [token, t, user?.role]);
-  
-
-  useEffect(() => {
-    fetchVideos();
-  }, [fetchVideos]);
-
+  // Fetch user details
   const fetchUserDetails = useCallback(async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BASE_ADMIN_API}/auth/userDetails`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log(response)
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASE_ADMIN_API}/auth/userDetails`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setUser(response.data.user);
     } catch (err) {
       toast.error(err.response?.data?.message || t("error_fetching_user"));
@@ -58,6 +37,64 @@ const Dashboard = () => {
     fetchUserDetails();
   }, [fetchUserDetails]);
 
+  // Fetch course videos count
+  const fetchVideosCount = useCallback(async () => {
+    try {
+      const endpoint =
+        user?.role === "teacher"
+          ? `${process.env.REACT_APP_BASE_ADMIN_API}/admin/courseVideo`
+          : `${process.env.REACT_APP_BASE_ADMIN_API}/admin/courseVideo/my-videos`;
+
+      const res = await axios.get(endpoint, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setVideosCount(res.data.length || 0);
+    } catch (err) {
+      toast.error(err.response?.data?.message || t("error_fetching_user"));
+    }
+  }, [token, user?.role, t]);
+
+  // Fetch enroll teacher count
+  const fetchEnrollTeacherCount = useCallback(async () => {
+    try {
+      if (user?.role !== "teacher") return;
+      const res = await axios.get(
+        `${process.env.REACT_APP_BASE_ADMIN_API}/admin/enrollTeacher`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setEnrollTeacherCount(res.data.length || 0);
+    } catch (err) {
+      toast.error(err.response?.data?.message || t("error_fetching_user"));
+    }
+  }, [token, user?.role, t]);
+
+  // Fetch student count
+  const fetchStudentsCount = useCallback(async () => {
+    try {
+      if (user?.role !== "teacher") return;
+      const res = await axios.get(
+        `${process.env.REACT_APP_BASE_ADMIN_API}/auth/getAllUsers`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("asasasasas",res)
+      setStudentsCount(res.data.users.length || 0);
+    } catch (err) {
+      toast.error(err.response?.data?.message || t("error_fetching_user"));
+    }
+  }, [token, user?.role, t]);
+
+  useEffect(() => {
+    if (user) {
+      fetchVideosCount();
+      fetchEnrollTeacherCount();
+      fetchStudentsCount();
+    }
+  }, [user, fetchVideosCount, fetchEnrollTeacherCount, fetchStudentsCount]);
+
   const handleClick = () => {
     if (user?.role === "teacher") {
       navigate("/dashboard/course-videos");
@@ -65,55 +102,61 @@ const Dashboard = () => {
       navigate("/dashboard/my-videos");
     }
   };
+
   return (
     <div className="w-100 dashboard-page">
       <Container className="py-4 py-md-5 px-2 px-sm-3">
-      
         <Row xs={1} sm={2} md={3} lg={3} xl={4} className="g-4 justify-content-center">
-        <Col>
-        <Card
-        className="dashboard-card h-100"
-        onClick={handleClick}
-        style={{ cursor: "pointer" }}
-      >
-        <Card.Body className="text-center">
-          <FaFilm size={40} className="mb-2 dashboard-card-icon" />
-          <Card.Title>{t("Total_vedios")}</Card.Title>
-          <Card.Text>{t("Total_vedios_tadat")}</Card.Text>
-          <Card.Text>{fectchVedios.length}</Card.Text>
-        </Card.Body>
-      </Card>
-      </Col>
+          {/* Total Videos */}
+          <Col>
+            <Card className="dashboard-card h-100" onClick={handleClick} style={{ cursor: "pointer" }}>
+              <Card.Body className="text-center">
+                <FaFilm size={40} className="mb-2 dashboard-card-icon" />
+                <Card.Title>{t("Total_vedios")}</Card.Title>
+                <Card.Text>{t("Total_vedios_tadat")}</Card.Text>
+                <Card.Text>{videosCount}</Card.Text>
+              </Card.Body>
+            </Card>
+          </Col>
+
+          {/* Enroll Teacher - Only for teacher */}
           {user?.role === "teacher" && (
             <>
-          
               <Col>
-                <Card className="dashboard-card h-100" onClick={() => navigate('/dashboard/see_all_teacher_enroll')} style={{ cursor: 'pointer' }}>
+                <Card
+                  className="dashboard-card h-100"
+                  onClick={() => navigate("/dashboard/see_all_teacher_enroll")}
+                  style={{ cursor: "pointer" }}
+                >
                   <Card.Body className="text-center">
                     <FaChalkboardTeacher size={40} className="mb-2 dashboard-card-icon" />
                     <Card.Title>{t("enroll_teacher")}</Card.Title>
                     <Card.Text>{t("enroll_teacher_desc")}</Card.Text>
-                    
+                    <Card.Text>{enrollTeacherCount}</Card.Text>
                   </Card.Body>
                 </Card>
               </Col>
-             
 
               <Col>
-                <Card className="dashboard-card h-100" onClick={() => navigate('/dashboard/students_enroll')} style={{ cursor: 'pointer' }}>
+                <Card
+                  className="dashboard-card h-100"
+                  onClick={() => navigate("/dashboard/students_enroll")}
+                  style={{ cursor: "pointer" }}
+                >
                   <Card.Body className="text-center">
                     <HiUsers size={40} className="mb-2 dashboard-card-icon" />
                     <Card.Title>{t("enroll_student")}</Card.Title>
                     <Card.Text>{t("enroll_student_desc")}</Card.Text>
+                    <Card.Text>{studentsCount}</Card.Text>
                   </Card.Body>
                 </Card>
               </Col>
             </>
           )}
 
-      
+          {/* Reset Password */}
           <Col>
-            <Card className="dashboard-card h-100" onClick={() => navigate('/dashboard/profile')} style={{ cursor: 'pointer' }}>
+            <Card className="dashboard-card h-100" onClick={() => navigate("/dashboard/profile")} style={{ cursor: "pointer" }}>
               <Card.Body className="text-center">
                 <FaRedo size={40} className="mb-2 dashboard-card-icon" />
                 <Card.Title>{t("reset_password")}</Card.Title>
@@ -121,11 +164,8 @@ const Dashboard = () => {
               </Card.Body>
             </Card>
           </Col>
-
         </Row>
       </Container>
-
-      
     </div>
   );
 };

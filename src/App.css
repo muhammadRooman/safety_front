@@ -1164,3 +1164,22 @@ button.btn.btn-sm.student-table-action-btn.ee {
   background-color: #90EE90 !important;
   color: black !important;
 }
+
+.arrow {
+  display: inline-block;
+  animation: slideArrow 1s infinite alternate;
+  font-size: 18px;
+  color: #ffcc2a;
+  font-weight: bold;
+}
+
+@keyframes slideArrow {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(30px);
+  }
+}
+
+

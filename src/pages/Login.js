@@ -144,13 +144,16 @@ function Login() {
                       <Form.Group className="mb-3">
                         <Form.Label className="fw-semibold">Email</Form.Label>
                         <Form.Control
-                          type="email"
-                          {...register("email")}
-                          className="rounded-pill px-4 py-2.5"
-                          placeholder="Enter your email"
-                          autoComplete="username"
-                          isInvalid={!!errors.email}
-                        />
+                        type="email"
+                        {...register("email")}
+                        className="rounded-pill px-4 py-2.5"
+                        placeholder="Enter your email"
+                        autoComplete="username"
+                        isInvalid={!!errors.email}
+                        onChange={(e) => {
+                          e.target.value = e.target.value.toLowerCase();
+                        }}
+                      />
                         <Form.Control.Feedback type="invalid">
                           {errors.email?.message}
                         </Form.Control.Feedback>
