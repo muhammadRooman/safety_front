@@ -28,31 +28,32 @@ const TopNavbar = () => {
 
   return (
     <>
-      <div className="main">
+      <div className="main top-app-bar">
 
-        <Container>
+        <Container fluid className="px-2 px-sm-3">
 
           <div className="twodiv">
 
             {/* Left */}
-            <div className="cmsText">
-              <Navbar.Brand className="fw-bold text-primary mb-0">
+            <div className="cmsText flex-grow-1 min-w-0">
+              <Navbar.Brand
+                className="fw-bold text-primary mb-0 text-truncate d-block"
+                title={t('CMS_TITLE')}
+              >
                 <span className="academyText">{t('CMS_TITLE')}</span>
-                
               </Navbar.Brand>
             </div>
 
             {/* Right */}
             <div className="gareandlang">
 
-              <div className="d-flex align-items-center gap-5">
+              <div className="d-flex align-items-center gap-2 gap-md-4">
 
                 {/* Language */}
                 <Dropdown align="end">
                   <Dropdown.Toggle
                     variant="light"
-                    className="rounded-circle border-0 bg-transparent"
-                    style={{ width: '40px', height: '40px' }}
+                    className="rounded-circle icon-btn-toggle"
                   >
                     {currentLang === 'en'
                       ? <img src="/Pakistan.svg" alt="Urdu" width="30" />
@@ -89,8 +90,7 @@ const TopNavbar = () => {
 
                   <Dropdown.Toggle
                     variant="light"
-                    className="rounded-circle border-0 bg-transparent"
-                    style={{ width: '40px', height: '40px' }}
+                    className="rounded-circle icon-btn-toggle"
                   >
                     <IoSettings size={24} />
                   </Dropdown.Toggle>

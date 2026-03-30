@@ -29,19 +29,26 @@ const COURSE_TYPES = [
   { value: "RIGGER3", label: "RIGGER3" },
 ];
 
+const VIDEO_LANGUAGES = [
+  { value: "Urdu", label: "Urdu" },
+  { value: "English", label: "English" },
+  { value: "Arabic", label: "Arabic" },
+];
+
 export default function CourseVideoList() {
   const navigate = useNavigate();
   const token = useSelector((state) => state.auth.token);
 
   const [videos, setVideos] = useState([]);
   const [filterCourseType, setFilterCourseType] = useState("");
+  const [filterLanguage, setFilterLanguage] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
   // Upload/Edit Modal States
   const [showModal, setShowModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [uploadForm, setUploadForm] = useState({ title: "", courseType: "" });
+  const [uploadForm, setUploadForm] = useState({ title: "", courseType: "", language: "English" });
   const [videoFile, setVideoFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -58,9 +65,11 @@ export default function CourseVideoList() {
   // Fetch videos
   const fetchVideos = async () => {
     try {
-      const url = filterCourseType
-        ? `${API_BASE}/admin/courseVideo?courseType=${filterCourseType}`
-        : `${API_BASE}/admin/courseVideo`;
+      const params = new URLSearchParams();
+      if (filterCourseType) params.set("courseType", filterCourseType);
+      if (filterLanguage) params.set("language", filterLanguage);
+      const qs = params.toString();
+      const url = qs ? `${API_BASE}/admin/courseVideo?${qs}` : `${API_BASE}/admin/courseVideo`;
 
       const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -73,7 +82,7 @@ export default function CourseVideoList() {
 
   useEffect(() => {
     fetchVideos();
-  }, [filterCourseType]);
+  }, [filterCourseType, filterLanguage]);
 
   // Group videos by course for Tabs
   const courseOrder = COURSE_TYPES.map((c) => c.value);
@@ -85,32 +94,35 @@ export default function CourseVideoList() {
   // Handle Upload / Edit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!uploadForm.title || !uploadForm.courseType) {
-      toast.error("Title and Course type are required");
+    if (!uploadForm.title || !uploadForm.courseType || !uploadForm.language) {
+      toast.error("Title, course type and language are required");
       return;
     }
 
     setLoading(true);
     try {
       const formData = new FormData();
+      const lang = String(uploadForm.language || "English").trim();
       formData.append("title", uploadForm.title);
       formData.append("courseType", uploadForm.courseType);
+      formData.append("language", lang);
+      formData.append("videoLang", lang);
       if (videoFile) formData.append("video", videoFile);
 
+      // Do not set Content-Type manually — browser/axios must add multipart boundary.
+      const authHeaders = { Authorization: `Bearer ${token}` };
+      const langQ = encodeURIComponent(lang);
+
       if (editMode && editId) {
-        await axios.put(`${API_BASE}/admin/courseVideo/${editId}`, formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        await axios.put(
+          `${API_BASE}/admin/courseVideo/${editId}?language=${langQ}`,
+          formData,
+          { headers: authHeaders }
+        );
         toast.success("Video updated successfully");
       } else {
-        await axios.post(`${API_BASE}/admin/courseVideo`, formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
+        await axios.post(`${API_BASE}/admin/courseVideo?language=${langQ}`, formData, {
+          headers: authHeaders,
         });
         toast.success("Video uploaded successfully");
       }
@@ -126,7 +138,7 @@ export default function CourseVideoList() {
   };
 
   const resetForm = () => {
-    setUploadForm({ title: "", courseType: "" });
+    setUploadForm({ title: "", courseType: "", language: "English" });
     setVideoFile(null);
     setEditId(null);
     setEditMode(false);
@@ -167,6 +179,15 @@ export default function CourseVideoList() {
           bg="primary"
         >
           {row.courseType}
+        </Badge>
+      ),
+    },
+    {
+      name: "Language",
+      width: "110px",
+      cell: (row) => (
+        <Badge bg="secondary" className="text-capitalize">
+          {row.language || "English"}
         </Badge>
       ),
     },
@@ -223,7 +244,11 @@ export default function CourseVideoList() {
             variant="success"
             onClick={() => {
               setEditId(row._id);
-              setUploadForm({ title: row.title, courseType: row.courseType });
+              setUploadForm({
+                title: row.title,
+                courseType: row.courseType,
+                language: row.language || "English",
+              });
               setVideoFile(null);
               setEditMode(true);
               setShowModal(true);
@@ -291,12 +316,16 @@ export default function CourseVideoList() {
         <h3 className=" mb-0 fw-semibold name_heading">Course Videos</h3>
       </Col>
     <Col
-xs={12}
-md="auto"
-className="d-flex gap-2 justify-content-end flex-nowrap"
->
+      xs={12}
+      md="auto"
+      className="d-flex flex-column flex-md-row gap-2 align-items-stretch align-items-md-center justify-content-md-end"
+    >
 <Form.Select
-style={{ width: "160px" }}
+className="w-100 course-video-toolbar-select"
+style={{
+  maxWidth: "100%",
+  color: "var(--text-primary, #2d3a4b)",
+}}
 value={filterCourseType}
 onChange={(e) => setFilterCourseType(e.target.value)}
 >
@@ -308,15 +337,34 @@ onChange={(e) => setFilterCourseType(e.target.value)}
 ))}
 </Form.Select>
 
+<Form.Select
+  className="w-100 course-video-toolbar-select"
+  style={{
+    maxWidth: "100%",
+    color: "var(--text-primary, #2d3a4b)",
+  }}
+  value={filterLanguage}
+  onChange={(e) => setFilterLanguage(e.target.value)}
+  title="Filter by video language"
+>
+  <option value="">All languages</option>
+  {VIDEO_LANGUAGES.map((l) => (
+    <option key={l.value} value={l.value}>
+      {l.label}
+    </option>
+  ))}
+</Form.Select>
+
 <Button
-  className="buttonColor px-3 d-flex align-items-center"
+  className="buttonColor course-video-toolbar-upload d-flex align-items-center justify-content-center flex-shrink-0 w-auto align-self-end align-self-md-center ms-auto ms-md-0 px-2 px-md-3"
   onClick={() => {
     resetForm();
     setShowModal(true);
   }}
 >
-<IoMdAdd /> Upload Video
-  <span className="ms-1 d-none d-sm-inline"></span>
+  <IoMdAdd className="flex-shrink-0" />
+  <span className="d-none d-sm-inline ms-1">Upload Video</span>
+  <span className="d-sm-none ms-1">Upload</span>
 </Button>
 </Col>
     </Row>
@@ -388,6 +436,24 @@ onChange={(e) => setFilterCourseType(e.target.value)}
             </Form.Group>
 
             <Form.Group className="mb-3">
+              <Form.Label>Video language <span style={{ color: "red" }}>*</span></Form.Label>
+              <Form.Text className="d-block mb-2" style={{ fontSize: "12px" }}>
+                Students only see videos in the language assigned to them by admin (Student list → Edit).
+              </Form.Text>
+              <Form.Select
+                value={uploadForm.language}
+                onChange={(e) => setUploadForm((p) => ({ ...p, language: e.target.value }))}
+                required
+              >
+                {VIDEO_LANGUAGES.map((l) => (
+                  <option key={l.value} value={l.value}>
+                    {l.label}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
               <Form.Label>
                 Video File {editMode ? "(Leave empty to keep current)" : "(Required)"}
               </Form.Label>
@@ -432,6 +498,7 @@ onChange={(e) => setFilterCourseType(e.target.value)}
         onHide={() => setShowVideoModal(false)}
         centered
         size="lg"
+        fullscreen="sm-down"
         backdrop="static"
         keyboard={false}
       >
@@ -443,7 +510,8 @@ onChange={(e) => setFilterCourseType(e.target.value)}
             <video
               controls
               autoPlay
-              style={{ width: "100%", height: "auto", maxHeight: "70vh" }}
+              className="w-100 course-video-modal-player"
+              style={{ height: "auto" }}
             >
               <source src={selectedVideo} type="video/mp4" />
               Your browser does not support the video tag.

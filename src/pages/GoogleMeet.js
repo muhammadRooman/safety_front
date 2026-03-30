@@ -68,13 +68,14 @@ const GoogleMeet = () => {
         <Breadcrumb.Item active>Google Meet</Breadcrumb.Item>
       </Breadcrumb>
 
-      <div style={{ display: "flex", justifyContent: "center" }}>
+      <div className="d-flex justify-content-center w-100 px-1">
         <Card
+          className="w-100"
           style={{
-            width: "900px",
+            maxWidth: "900px",
             borderRadius: "20px",
             boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
-            padding: "50px",
+            padding: "clamp(1.25rem, 5vw, 3rem)",
             border: "none",
           }}
         >

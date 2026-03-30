@@ -19,6 +19,8 @@ export default function MyVideos() {
   const token = useSelector((state) => state.auth.token);
   const [videos, setVideos] = useState([]);
   const [assignedCourses, setAssignedCourses] = useState([]);
+  /** Language set by admin for this student — API returns only videos in this language. */
+  const [assignedVideoLanguage, setAssignedVideoLanguage] = useState("");
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
 
@@ -36,6 +38,7 @@ export default function MyVideos() {
         setVideos(videosRes.data);
         const subs = userRes.data?.user?.subject;
         setAssignedCourses(Array.isArray(subs) ? subs : subs ? [subs] : []);
+        setAssignedVideoLanguage(userRes.data?.user?.videoLanguage || "English");
       } catch (err) {
         toast.error(err.response?.data?.message || "Failed to load videos");
       } finally {
@@ -94,6 +97,21 @@ export default function MyVideos() {
               </span>
             </p>
           )}
+          <p className="mb-0 mt-2 text-muted" style={{ fontSize: "0.95rem" }}>
+            <strong>Video language (set by admin):</strong>{" "}
+
+            <span
+            style={{
+              color: "green",
+              fontWeight: "bold",
+            }}
+          >
+          {assignedVideoLanguage || "English"}
+          </span>
+            
+            {" — "}
+            You only see course videos recorded in this language. To change it, contact the admin.
+          </p>
           
           
         </Col>
@@ -105,7 +123,10 @@ export default function MyVideos() {
         <Card>
         <Card.Body className="text-center" style={{ color: "#dc3545" }}>
         <p style={{ fontWeight: 600, fontSize: "1rem", marginBottom: "0.5rem" }}>
-          No course videos assigned yet.
+          No course videos to show yet.
+        </p>
+        <p style={{ fontSize: "0.95rem", marginBottom: "0.5rem" }}>
+          If you have assigned courses but no videos appear, the admin may not have uploaded videos in your language ({assignedVideoLanguage || "English"}) yet, or payment may still be pending. Contact admin if you need a different video language.
         </p>
         <p style={{ fontSize: "0.95rem", marginBottom: "0.5rem" }}>
           Please complete your payment to access the courses. If you have already paid and the courses are still not visible, kindly contact the admin for assistance.
@@ -136,13 +157,13 @@ export default function MyVideos() {
                       <Card.Title className="h6 mb-0">{v.title}</Card.Title>
                       <Badge bg="primary">{v.courseType}</Badge>
                     </div>
-                    <video
-                      controls
-                      style={{ width: "100%", maxHeight: 200 }}
-                      src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`}
-                    >
-                      Your browser does not support the video tag.
-                    </video>
+                   <video
+  controls
+  controlsList="nodownload noremoteplayback"
+  disablePictureInPicture
+  style={{ width: "100%", maxHeight: 200 }}
+  src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`}
+/>
                   </Card.Body>
                 </Card>
               </Col>

@@ -97,9 +97,9 @@ const List = () => {
         <div className="text-center py-5">Loading...</div>
       ) : chunkedCourses.length ? (
         chunkedCourses.map((chunk, rowIndex) => (
-          <Row className="mb-3" key={rowIndex}>
+          <Row className="mb-3 g-3" key={rowIndex}>
             {chunk.map((course, colIndex) => (
-              <Col md={4} key={colIndex}>
+              <Col xs={12} sm={6} md={4} key={colIndex}>
                 <Card
                   className="shadow-sm text-center course-card"
                   onClick={() => handleCardClick(course)}
@@ -123,6 +123,7 @@ const List = () => {
         onHide={() => setShowModal(false)}
         centered
         size="md"
+        scrollable
         backdrop="static"
         keyboard={false}
       >

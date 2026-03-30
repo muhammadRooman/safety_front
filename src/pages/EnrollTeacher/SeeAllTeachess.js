@@ -190,7 +190,7 @@ export default function SeeAllTeachess() {
       <Col
   xs={12}
   md="auto"
-  className="d-flex gap-2 justify-content-end flex-nowrap"
+  className="d-flex gap-2 justify-content-end flex-wrap flex-md-nowrap"
 >
   {filteredItems.length > 0 && (
     <CSVLink
@@ -214,8 +214,8 @@ export default function SeeAllTeachess() {
       </Row>
 
       {/* Search */}
-      <Row className="mb-3">
-        <Col md={4}>
+      <Row className="mb-3 g-2">
+        <Col xs={12} md={4}>
           <Form.Control
             type="text"
             placeholder={t("searchByName")}

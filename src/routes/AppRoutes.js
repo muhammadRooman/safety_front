@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import PrivateRoute from "../components/PrivateRoute";
+import TeacherRoute from "../components/TeacherRoute";
 import Layout from "../components/Layout";
 import ListTracker from "../pages/tracker/List";
 import AddTracker from "../pages/tracker/Create";
@@ -10,6 +11,7 @@ import RouteProgress from "../RouteProgress";
 import PublicRoute from "./PublicRoute";
 import Edit from "../pages/tracker/Edit";
 import OHSCourse from "../pages/OHSCourses/List";
+import StudentRegister from "../pages/EnrollStudent/StudentRegister";
 // import GoogleMeet from "../pages/GoogleMeet";
 
 const Signup = lazy(() => import("../pages/Signup"));
@@ -37,6 +39,9 @@ const AdminMessages = lazy(() => import("../pages/Messages/AdminMessages"));
 const StudentChat = lazy(() => import("../pages/StudentLMS/StudentChat"));
 const TeacherInfoList = lazy(() => import("../pages/TeacherInfo/List"));
 const OHSCourseManage = lazy(() => import("../pages/OHSCourses/Manage"));
+const PostJob = lazy(() => import("../pages/postJob/PostJob"));
+const AllJobs = lazy(() => import("../pages/postJob/AllJobs"));
+const JobsBoard = lazy(() => import("../pages/postJob/JobsBoard"));
 
 const AppRoutes = () => {
   return (
@@ -99,38 +104,22 @@ const AppRoutes = () => {
               </PrivateRoute>
             }
           />
+
           <Route
-            path="dashboard/tracker"
+            path="dashboard/studentRegister"
             element={
-              <PrivateRoute>
-                <ListTracker />
-              </PrivateRoute>
+              <TeacherRoute>
+                <StudentRegister />
+              </TeacherRoute>
             }
           />
-          <Route
-            path="dashboard/tracker/create"
-            element={
-              <PrivateRoute>
-                <AddTracker />
-              </PrivateRoute>
-            }
-          />
-          <Route
-           path="/dashboard/tracker/edit/:id" 
-            element={
-              <PrivateRoute>
-                <Edit />
-              </PrivateRoute>
-            }
-          />
-         
-         
+                
           <Route
             path="dashboard/course-videos"
             element={
-              <PrivateRoute>
+              <TeacherRoute>
                 <CourseVideoList />
-              </PrivateRoute>
+              </TeacherRoute>
             }
           />
           <Route
@@ -144,75 +133,46 @@ const AppRoutes = () => {
           <Route
             path="dashboard/students_enroll/create"
             element={
-              <PrivateRoute>
+              <TeacherRoute>
                 <CreateStudentEnroll />
-              </PrivateRoute>
+              </TeacherRoute>
             }
           />
             <Route
             path="dashboard/students_enroll/"
             element={
-              <PrivateRoute>
+              <TeacherRoute>
                 <EditStudentEnroll />
-              </PrivateRoute>
+              </TeacherRoute>
             }
           />
-           
-          {/** 
-          {
-             <Route
-            path="dashboard/contact_us/"
-            element={
-              <PrivateRoute>
-                <ContactUs />
-              </PrivateRoute>
-            }
-          />  
-          } */}
-           
-          {
-            /** 
-            <Route
-            path="dashboard/contact_us/"
-            element={
-              <PrivateRoute>
-                <ContactUs />
-              </PrivateRoute>
-            }
-          />*/
-          }
-          <Route
-            path="dashboard/teacher_enroll"
-            element={
-              <PrivateRoute>
-                <ListTeacherEnroll />
-              </PrivateRoute>
-            }
-          />
+                  
+        
           <Route
             path="dashboard/teacher_enroll/create"
             element={
-              <PrivateRoute>
+              <TeacherRoute>
                 <CreateTeacherEnroll />
-              </PrivateRoute>
+              </TeacherRoute>
             }
           />
+          <Route
+          path="dashboard/teacher_enroll/:id"
+          element={
+            <TeacherRoute>
+              <EditTeacherEnroll />
+            </TeacherRoute>
+          }
+        />
           <Route
             path="dashboard/see_all_teacher_enroll"
             element={
-              <PrivateRoute>
+              <TeacherRoute>
                 <SeeAllTeachersEnroll />
-              </PrivateRoute>
+              </TeacherRoute>
             }
           />
-          <Route
-            path="dashboard/assignment"
-            element={
-              <PrivateRoute>
-                <ListAssignment/>
-              </PrivateRoute>
-            }
-          />
+         
           <Route
             path="dashboard/ohs_Course"
             element={
@@ -225,43 +185,11 @@ const AppRoutes = () => {
           <Route
             path="dashboard/ohs_course_manage"
             element={
-              <PrivateRoute>
+              <TeacherRoute>
                 <OHSCourseManage />
-              </PrivateRoute>
+              </TeacherRoute>
             }
-          />}
-          <Route
-            path="dashboard/assignment/create"
-            element={
-              <PrivateRoute>
-                <CreateAssignment/>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="dashboard/assignment/:id"
-            element={
-              <PrivateRoute>
-                <EditAssignment/>
-              </PrivateRoute>
-            }
-          />                
-          <Route
-            path="dashboard/teacher_enroll/:id"
-            element={
-              <PrivateRoute>
-                <EditTeacherEnroll />
-              </PrivateRoute>
-            }
-          />
-           <Route
-            path="dashboard/check_assignment/:id"
-            element={
-              <PrivateRoute>
-                <CheckAssignment/>
-              </PrivateRoute>
-            }
-          />
+          />}                       
           <Route
             path="dashboard/google-meet"
             element={
@@ -282,9 +210,9 @@ const AppRoutes = () => {
           <Route
             path="dashboard/messages"
             element={
-              <PrivateRoute>
+              <TeacherRoute>
                 <AdminMessages />
-              </PrivateRoute>
+              </TeacherRoute>
             }
           />
        
@@ -293,6 +221,38 @@ const AppRoutes = () => {
             element={
               <PrivateRoute>
                 <TeacherInfoList />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="dashboard/post-job/:id"
+            element={
+              <TeacherRoute>
+                <PostJob />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="dashboard/post-job"
+            element={
+              <TeacherRoute>
+                <PostJob />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="dashboard/all-jobs"
+            element={
+              <TeacherRoute>
+                <AllJobs />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="dashboard/jobs-board"
+            element={
+              <PrivateRoute>
+                <JobsBoard />
               </PrivateRoute>
             }
           />

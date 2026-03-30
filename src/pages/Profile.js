@@ -79,27 +79,8 @@ const Profile = () => {
   };
 
   return (
-    <div
-    style={{
-      background: "linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%)",
-      display: "flex",
-      justifyContent: "center",
-     
-      overflowX: "hidden",
-    }}
-  >
-
-    <div
-      className="profile-glass-card p-4"
-      style={{
-        maxWidth: 950,
-        maxHeight:900,
-        width: "100%",
-        borderRadius: 20,
-        boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
-        background: "#fff",
-      }}
-    >
+    <div className="profile-page">
+      <div className="profile-glass-card">
         {/* Breadcrumb - left aligned inside card */}
         <Breadcrumb className="mb-3" style={{ paddingLeft: 0 }}>
           <Breadcrumb.Item onClick={() => navigate("/dashboard")}>
@@ -115,7 +96,7 @@ const Profile = () => {
           <img
             src="/OHS3.png" // replace with your logo path
             alt="OHS Academy Logo"
-            style={{ height: 150, objectFit: "contain" }}
+            style={{ height: "clamp(80px, 22vw, 150px)", maxWidth: "100%", objectFit: "contain" }}
           />
         </div>
 
@@ -168,55 +149,61 @@ const Profile = () => {
 
           <Row className="mb-3">
             <Col md={6}>
-              <Form.Group controlId="formNewPassword" className="position-relative">
+              <Form.Group controlId="formNewPassword">
                 <Form.Label className="fw-semibold">{t("New Password")}</Form.Label>
-                <Form.Control
-                  type={showPassword ? "text" : "password"}
-                  {...register("password")}
-                  className="rounded-pill px-4 py-3 profile-input w-100"
-                  placeholder={t("Enter new password")}
-                />
-                <span
-                  onClick={() => setShowPassword((v) => !v)}
-                  style={{
-                    position: "absolute",
-                    right: 18,
-                    top: "48px",
-                    cursor: "pointer",
-                    color: "#4f8cff",
-                    fontSize: 17,
-                  }}
-                  title={showPassword ? t("Hide password") : t("Show password")}
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
+                <div className="profile-input-wrap">
+                  <Form.Control
+                    type={showPassword ? "text" : "password"}
+                    {...register("password")}
+                    className="rounded-pill px-4 py-3 profile-input w-100"
+                    placeholder={t("Enter new password")}
+                  />
+                  <span
+                    className="profile-toggle-pw"
+                    onClick={() => setShowPassword((v) => !v)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setShowPassword((v) => !v);
+                      }
+                    }}
+                    title={showPassword ? t("Hide password") : t("Show password")}
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </span>
+                </div>
                 <small className="text-danger ms-1">{errors.password?.message}</small>
               </Form.Group>
             </Col>
 
             <Col md={6}>
-              <Form.Group controlId="formConfirmPassword" className="position-relative">
+              <Form.Group controlId="formConfirmPassword">
                 <Form.Label className="fw-semibold">{t("Confirm Password")}</Form.Label>
-                <Form.Control
-                  type={showConfirmPassword ? "text" : "password"}
-                  {...register("confirmPassword")}
-                  className="rounded-pill px-4 py-3 profile-input w-100"
-                  placeholder={t("Confirm new password")}
-                />
-                <span
-                  onClick={() => setShowConfirmPassword((v) => !v)}
-                  style={{
-                    position: "absolute",
-                    right: 18,
-                    top: "48px",
-                    cursor: "pointer",
-                    color: "#4f8cff",
-                    fontSize: 17,
-                  }}
-                  title={showConfirmPassword ? t("Hide password") : t("Show password")}
-                >
-                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
+                <div className="profile-input-wrap">
+                  <Form.Control
+                    type={showConfirmPassword ? "text" : "password"}
+                    {...register("confirmPassword")}
+                    className="rounded-pill px-4 py-3 profile-input w-100"
+                    placeholder={t("Confirm new password")}
+                  />
+                  <span
+                    className="profile-toggle-pw"
+                    onClick={() => setShowConfirmPassword((v) => !v)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setShowConfirmPassword((v) => !v);
+                      }
+                    }}
+                    title={showConfirmPassword ? t("Hide password") : t("Show password")}
+                  >
+                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                  </span>
+                </div>
                 <small className="text-danger ms-1">{errors.confirmPassword?.message}</small>
               </Form.Group>
             </Col>
@@ -238,20 +225,6 @@ const Profile = () => {
             {isSubmitting ? <Spinner animation="border" size="sm" /> : t("Update Profile")}
           </Button>
         </Form>
-
-        <style>{`
-          .profile-chip {
-            display: inline-block;
-            background: linear-gradient(90deg, #e0e7ef 0%, #f8fafc 100%);
-            border-radius: 999px;
-            padding: 10px 22px;
-            font-size: 1.08rem;
-            font-weight: 500;
-            color: #222;
-            box-shadow: 0 2px 8px 0 #b6c6e644;
-            margin-bottom: 4px;
-          }
-        `}</style>
       </div>
     </div>
   );

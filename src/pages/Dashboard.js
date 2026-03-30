@@ -66,8 +66,8 @@ const Dashboard = () => {
     }
   };
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%)"}}>
-      <Container className="py-5">
+    <div className="w-100 dashboard-page">
+      <Container className="py-4 py-md-5 px-2 px-sm-3">
       
         <Row xs={1} sm={2} md={3} lg={3} xl={4} className="g-4 justify-content-center">
         <Col>
@@ -77,7 +77,7 @@ const Dashboard = () => {
         style={{ cursor: "pointer" }}
       >
         <Card.Body className="text-center">
-          <FaFilm size={40} className="mb-2" style={{ color: "rgb(255 204 42)" }} />
+          <FaFilm size={40} className="mb-2 dashboard-card-icon" />
           <Card.Title>{t("Total_vedios")}</Card.Title>
           <Card.Text>{t("Total_vedios_tadat")}</Card.Text>
           <Card.Text>{fectchVedios.length}</Card.Text>
@@ -90,9 +90,10 @@ const Dashboard = () => {
               <Col>
                 <Card className="dashboard-card h-100" onClick={() => navigate('/dashboard/see_all_teacher_enroll')} style={{ cursor: 'pointer' }}>
                   <Card.Body className="text-center">
-                    <FaChalkboardTeacher size={40} className="mb-2" style={{ color: 'rgb(255 204 42)' }} />
+                    <FaChalkboardTeacher size={40} className="mb-2 dashboard-card-icon" />
                     <Card.Title>{t("enroll_teacher")}</Card.Title>
                     <Card.Text>{t("enroll_teacher_desc")}</Card.Text>
+                    
                   </Card.Body>
                 </Card>
               </Col>
@@ -101,7 +102,7 @@ const Dashboard = () => {
               <Col>
                 <Card className="dashboard-card h-100" onClick={() => navigate('/dashboard/students_enroll')} style={{ cursor: 'pointer' }}>
                   <Card.Body className="text-center">
-                    <HiUsers size={40} className="mb-2" style={{ color: 'rgb(255 204 42)' }} />
+                    <HiUsers size={40} className="mb-2 dashboard-card-icon" />
                     <Card.Title>{t("enroll_student")}</Card.Title>
                     <Card.Text>{t("enroll_student_desc")}</Card.Text>
                   </Card.Body>
@@ -114,7 +115,7 @@ const Dashboard = () => {
           <Col>
             <Card className="dashboard-card h-100" onClick={() => navigate('/dashboard/profile')} style={{ cursor: 'pointer' }}>
               <Card.Body className="text-center">
-                <FaRedo size={40} className="mb-2" style={{ color: 'rgb(255 204 42)' }} />
+                <FaRedo size={40} className="mb-2 dashboard-card-icon" />
                 <Card.Title>{t("reset_password")}</Card.Title>
                 <Card.Text>{t("reset_password_desc")}</Card.Text>
               </Card.Body>

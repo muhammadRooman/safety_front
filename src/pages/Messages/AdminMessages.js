@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Container, Row, Col, ListGroup, Form, Button, Badge, Card } from "react-bootstrap";
+import { Container, ListGroup, Form, Button, Badge, Card } from "react-bootstrap";
 import { io } from "socket.io-client";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import "./AdminMessages.css";
 
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "http://localhost:8082";
 
@@ -318,207 +319,194 @@ const AdminMessages = () => {
   }, [socket, activeStudent?._id, activeChatMessages]);
 
   return (
-    <Container fluid className="py-3">
-      <Row>
-        <Col
-          md={4}
-          className="border-end"
-          style={{ maxHeight: "80vh", overflowY: "auto" }}
-        >
-          <h5 className="mb-3">Students Messages</h5>
-          <Form.Select
-            size="sm"
-            aria-label="Filter students by online status"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="mb-2"
-          >
-            <option value="all">All Students</option>
-            <option value="active">🟢 Active (Online)</option>
-            <option value="inactive">🔴 Unactive (Offline)</option>
-          </Form.Select>
-          <ListGroup
-          style={{
-            maxHeight: "300px",   // height control karo (approx 5 items)
-            overflowY: "auto",
-          }}
-        >
-          {displayedStudents.map((s) => (
-            <ListGroup.Item
-              key={s._id}
-              action
-              active={activeStudent && activeStudent._id === s._id}
-              onClick={() => handleSelectStudent(s)}
-              className="d-flex justify-content-between align-items-center"
+    <Container fluid className="admin-messages-page py-3 px-3 px-md-4">
+      <div className="admin-messages-shell">
+        <aside className="admin-messages-sidebar">
+          <div className="admin-messages-sidebar-header">
+            <h2 className="admin-messages-sidebar-title">Students Messages</h2>
+            <Form.Select
+              size="sm"
+              aria-label="Filter students by online status"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="admin-messages-filter"
             >
-            <span className="d-flex align-items-center gap-2">
-            {(() => {
-              const isOnline = onlineStudentIds.some(
-                (id) => String(id) === String(s._id)
-              );
-          
-              return (
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 10,
-                    height: 10,
-                    borderRadius: "50%",
-                    backgroundColor: isOnline ? "#28a745" : "#dc3545", // ✅ green / red
-                    boxShadow: `0 0 4px ${
-                      isOnline
-                        ? "rgba(40,167,69,0.8)"
-                        : "rgba(220,53,69,0.8)"
-                    }`,
-                  }}
-                />
-              );
-            })()}
-          
-            <span>
-              {s.name}
-              <small className="text-muted d-block">{s.email}</small>
-            </span>
-          </span>
-        
-              {unread[s._id] > 0 && (
-                <Badge bg="danger" className="blinking-alert">
-                  {unread[s._id]}
-                </Badge>
-              )}
-            </ListGroup.Item>
-          ))}
-        </ListGroup>
-          <div className="mt-3">
-          {
-            activeChatMessages && activeChatMessages.length > 0 && (
-              <Card className="last-message-card border-0 mt-5">
-              <Card.Body>
-                <h6 className="mb-5 title">Last Message</h6>
-            
-                {activeChatMessages.length > 0 ? (
-                  <>
-                    {activeChatMessages.slice(-1).map((msg) => {
-                      const isAdminMsg = msg?.from === "admin";
-            
-                      return (
-                        <div
-                          key={msg?._id || msg?.createdAt || msg?.message}
-                          className={`d-flex ${
-                            isAdminMsg ? "justify-content-end" : "justify-content-start"
-                          } mb-2`}
-                        >
-                          <div className={`bubble ${isAdminMsg ? "you" : "student"}`}>
-                            {msg?.message}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </>
-                ) : (
-                  <p className="text-muted mb-0">No messages yet</p>
-                )}
-              </Card.Body>
-            </Card>
-            )
-
-
-
-
-            
-          }
+              <option value="all">All Students</option>
+              <option value="active">🟢 Active (Online)</option>
+              <option value="inactive">🔴 Unactive (Offline)</option>
+            </Form.Select>
           </div>
-        
-        </Col>
+          <div className="admin-messages-list-wrap">
+            <ListGroup className="admin-messages-list">
+              {displayedStudents.map((s) => (
+                <ListGroup.Item
+                  key={s._id}
+                  action
+                  active={activeStudent && activeStudent._id === s._id}
+                  onClick={() => handleSelectStudent(s)}
+                  className="d-flex justify-content-between align-items-center"
+                >
+                  <span className="d-flex align-items-center gap-2 min-w-0">
+                    {(() => {
+                      const isOnline = onlineStudentIds.some(
+                        (id) => String(id) === String(s._id)
+                      );
 
-        <Col md={8}>
+                      return (
+                        <span
+                          className="flex-shrink-0"
+                          style={{
+                            display: "inline-block",
+                            width: 10,
+                            height: 10,
+                            borderRadius: "50%",
+                            backgroundColor: isOnline ? "#28a745" : "#dc3545",
+                            boxShadow: `0 0 4px ${
+                              isOnline
+                                ? "rgba(40,167,69,0.8)"
+                                : "rgba(220,53,69,0.8)"
+                            }`,
+                          }}
+                        />
+                      );
+                    })()}
+
+                    <span className="d-block min-w-0 text-truncate">
+                      <span className="d-block text-truncate">{s.name}</span>
+                      <small className="text-muted d-block text-truncate">
+                        {s.email}
+                      </small>
+                    </span>
+                  </span>
+
+                  {unread[s._id] > 0 && (
+                    <Badge bg="danger" className="blinking-alert flex-shrink-0">
+                      {unread[s._id]}
+                    </Badge>
+                  )}
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+          </div>
+          <div className="admin-messages-preview">
+            {activeChatMessages && activeChatMessages.length > 0 && (
+              <Card className="last-message-card border-0">
+                <Card.Body>
+                  <h6 className="title">Last Message</h6>
+
+                  {activeChatMessages.length > 0 ? (
+                    <>
+                      {activeChatMessages.slice(-1).map((msg) => {
+                        const isAdminMsg = msg?.from === "admin";
+
+                        return (
+                          <div
+                            key={msg?._id || msg?.createdAt || msg?.message}
+                            className={`d-flex ${
+                              isAdminMsg
+                                ? "justify-content-end"
+                                : "justify-content-start"
+                            } mb-2`}
+                          >
+                            <div
+                              className={`bubble ${isAdminMsg ? "you" : "student"}`}
+                            >
+                              {msg?.message}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </>
+                  ) : (
+                    <p className="text-muted mb-0">No messages yet</p>
+                  )}
+                </Card.Body>
+              </Card>
+            )}
+          </div>
+        </aside>
+
+        <section className="admin-messages-main">
           {activeStudent ? (
             <>
-             <div
-  className="d-flex justify-content-between align-items-center mb-2"
-  style={{ borderBottom: "1px solid #eee", paddingBottom: 8 }}
->
-  {/* LEFT SIDE */}
-  <h5 className="mb-0">
-    Chat with {activeStudent.name}{" "}
-    <small className="text-muted">
-      ({activeStudent.email})
-    </small>
-  </h5>
+              <div className="admin-messages-chat-header">
+                <h2 className="admin-messages-chat-title">
+                  Chat with {activeStudent.name}
+                  <small className="text-muted d-block d-md-inline ms-md-1">
+                    ({activeStudent.email})
+                  </small>
+                </h2>
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  className="admin-messages-clear-btn"
+                  onClick={() => {
+                    setMessages([]);
+                    try {
+                      localStorage.removeItem(
+                        `studentMessages_${activeStudent._id}`
+                      );
+                      localStorage.setItem(
+                        `studentMessagesAlert_${activeStudent._id}`,
+                        "false"
+                      );
+                    } catch (e) {
+                      console.error("Failed to clear student history", e);
+                    }
 
-  {/* RIGHT SIDE BUTTON */}
-  <Button
-    variant="outline-danger"
-    size="sm"
-    onClick={() => {
-      setMessages([]);
-      try {
-        localStorage.removeItem(`studentMessages_${activeStudent._id}`);
-        localStorage.setItem(
-          `studentMessagesAlert_${activeStudent._id}`,
-          "false"
-        );
-      } catch (e) {
-        console.error("Failed to clear student history", e);
-      }
+                    axios
+                      .delete(
+                        `${process.env.REACT_APP_BASE_ADMIN_API}/messages/conversation/${activeStudent._id}`,
+                        { headers: { Authorization: `Bearer ${token}` } }
+                      )
+                      .catch(() => {});
+                  }}
+                >
+                  Clear History
+                </Button>
+              </div>
 
-      axios
-        .delete(
-          `${process.env.REACT_APP_BASE_ADMIN_API}/messages/conversation/${activeStudent._id}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        )
-        .catch(() => {});
-    }}
-  >
-    Clear History
-  </Button>
-</div>
-
-              <div
-                style={{
-                  maxHeight: "60vh",
-                  overflowY: "auto",
-                  border: "1px solid #eee",
-                  borderRadius: 8,
-                  padding: 12,
-                  marginBottom: 8,
-                  background: "#fff",
-                }}
-              >  <span className="text-muted">Student:</span> <span className="text-bold" style={{ fontSize: "1.2rem" , fontWeight: "bold" , }}>{activeStudent.name}</span>
-              
-              <hr></hr>
+              <div className="admin-messages-thread">
+                <div className="admin-messages-thread-header">
+                  <span className="admin-messages-thread-label">Student</span>
+                  <span className="admin-messages-thread-name">
+                    {activeStudent.name}
+                  </span>
+                </div>
                 {activeChatMessages.map((m, idx) => {
                   const isAdmin = m.from === "admin";
                   const deliveredToStudent = !!m?.deliveredToStudent;
                   const seenByStudent = !!m?.seenByStudent;
-                  const ticks = seenByStudent ? "✓✓" : deliveredToStudent ? "✓" : "";
-                  const tickColor = seenByStudent ? "#28a745" : "#6c757d";
+                  const ticks = seenByStudent
+                    ? "✓✓"
+                    : deliveredToStudent
+                      ? "✓"
+                      : "";
+                  const tickColor = seenByStudent ? "#198754" : "#6c757d";
                   return (
                     <div
                       key={idx}
-                      className={`d-flex mb-2 ${
-                        isAdmin ? "justify-content-end" : "justify-content-start"
+                      className={`admin-msg-row ${
+                        isAdmin ? "admin-msg-row--out" : "admin-msg-row--in"
                       }`}
                     >
                       <div
-                        style={{
-                          maxWidth: "75%",
-                          borderRadius: 16,
-                          padding: "6px 12px",
-                          backgroundColor: isAdmin ? "#ffc107" : "#e9ecef",
-                        }}
+                        className={`admin-msg-bubble ${
+                          isAdmin
+                            ? "admin-msg-bubble--admin"
+                            : "admin-msg-bubble--student"
+                        }`}
                       >
-                        <div style={{ fontSize: 14 }}>{m.message}</div>
-                        <div
-                          style={{
-                            fontSize: 10,
-                            textAlign: "right",
-                            opacity: 0.7,
-                          }}
-                        >
-                          {new Date(m.createdAt).toLocaleTimeString()}
+                        <div>{m.message}</div>
+                        <div className="admin-msg-meta">
+                          <span>
+                            {new Date(m.createdAt).toLocaleTimeString()}
+                          </span>
                           {isAdmin && ticks && (
-                            <span style={{ marginLeft: 6, color: tickColor, fontSize: 12 }}>
+                            <span
+                              className="admin-msg-ticks"
+                              style={{ color: tickColor }}
+                            >
                               {ticks}
                             </span>
                           )}
@@ -530,29 +518,32 @@ const AdminMessages = () => {
                 <div ref={messagesEndRef} />
               </div>
 
-              <Form onSubmit={handleSend} className="d-flex gap-2">
-                <Form.Control
-                  placeholder="Type a message..."
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                />
-                <Button type="submit" className="buttonColor">
-                  Send
-                </Button>
+              <Form
+                onSubmit={handleSend}
+                className="admin-messages-composer"
+              >
+                <div className="admin-messages-composer-inner">
+                  <Form.Control
+                    placeholder="Type a message..."
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    aria-label="Message text"
+                  />
+                  <Button type="submit" className="buttonColor">
+                    Send
+                  </Button>
+                </div>
               </Form>
             </>
           ) : (
-            <div
-              className="d-flex align-items-center justify-content-center"
-              style={{ height: "70vh" }}
-            >
+            <div className="admin-messages-empty">
               <p className="text-muted mb-0">
                 Select a student from the left list to start chat.
               </p>
             </div>
           )}
-        </Col>
-      </Row>
+        </section>
+      </div>
     </Container>
   );
 };

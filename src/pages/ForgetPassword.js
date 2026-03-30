@@ -33,18 +33,18 @@ const ForgetPassword = () => {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%)", display: "flex", alignItems: "center", justifyContent: "center", overflowX: "auto" }}>
-      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
-        <Container>
-          <Row className="align-items-center" style={{ minHeight: "80vh" }}>
-            <Col md={7} lg={6} xl={5}>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", overflowX: "hidden" }}>
+      <div style={{ display: "flex", justifyContent: "center", width: "100%", maxWidth: "100%" }}>
+        <Container fluid="md" className="px-2 px-md-3">
+          <Row className="align-items-center justify-content-center" style={{ minHeight: "80vh" }}>
+            <Col xs={12} md={10} lg={8} xl={6}>
               <Card
-                className="shadow-lg border-0 p-4 d-flex flex-row align-items-stretch signup-card-hover"
-                style={{ borderRadius: "1.5rem", background: "#fff", overflow: "hidden", width: "250%", margin: "0 auto" }}
+                className="shadow-lg border-0 p-3 p-md-4 d-flex flex-column flex-md-row align-items-stretch signup-card-hover"
+                style={{ borderRadius: "1.5rem", background: "#fff", overflow: "hidden", width: "100%", maxWidth: "100%", margin: "0 auto" }}
               >
                 {/* Illustration (left side, only on md+) */}
-                <div className="d-none d-md-flex flex-column align-items-center justify-content-center" style={{ background: "#f4f7fb", width: "38%", minHeight: 320 }}>
-                  <img src="/signup.jpg" alt="Forgot Password Illustration" style={{ maxWidth: 483, maxHeight: 500, opacity: 1, marginBottom: 12 }} />
+                <div className="d-none d-md-flex flex-column align-items-center justify-content-center" style={{ background: "#f4f7fb", width: "38%", minWidth: 0, minHeight: 320 }}>
+                  <img src="/signup.jpg" alt="Forgot Password Illustration" style={{ maxWidth: "100%", width: "100%", maxHeight: 500, height: "auto", opacity: 1, marginBottom: 12, objectFit: "contain" }} />
                   <div className="text-center px-2" style={{ color: '#4f8cff', fontWeight: 500, fontSize: 15 }}>
                     Trouble logging in? Reset your password easily!
                   </div>

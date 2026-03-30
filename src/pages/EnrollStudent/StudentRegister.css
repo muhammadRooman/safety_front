@@ -1,0 +1,110 @@
+/* Student Register (dashboard) — layout + responsive */
+
+.student-register-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #f8fafc 0%, #e8eef5 45%, #f0f4f9 100%);
+  padding: 0.75rem 0 1.5rem;
+}
+
+.student-register-breadcrumb {
+  flex-wrap: wrap;
+  row-gap: 0.25rem;
+  margin-bottom: 1rem !important;
+}
+
+.student-register-card {
+  border-radius: clamp(1rem, 3vw, 1.5rem);
+  background: #fff;
+  border: 1px solid rgba(37, 122, 213, 0.1);
+  box-shadow: 0 10px 40px rgba(37, 122, 213, 0.1);
+  overflow: hidden;
+  transition: box-shadow 0.25s ease;
+}
+
+.student-register-card:hover {
+  box-shadow: 0 14px 48px rgba(37, 122, 213, 0.14);
+}
+
+.student-register-hero {
+  background: linear-gradient(180deg, #f8fafc 0%, #eef3f9 100%);
+  border-right: 1px solid rgba(37, 122, 213, 0.08);
+  min-height: 280px;
+}
+
+.student-register-hero img {
+  max-width: min(100%, 260px);
+  max-height: min(45vh, 320px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.student-register-form-inner {
+  min-width: 0;
+}
+
+.student-register-title {
+  color: var(--brand-yellow-mid, rgb(240, 190, 30));
+  letter-spacing: -0.02em;
+  font-size: clamp(1.15rem, 4vw, 1.35rem);
+}
+
+.student-register-page .rounded-pill {
+  border-radius: 3rem !important;
+}
+
+.student-register-page .form-control:focus {
+  border-color: var(--brand-blue-bright, #4f8cff) !important;
+  box-shadow: 0 0 0 0.25rem rgba(79, 140, 255, 0.22) !important;
+}
+
+.student-register-page .position-relative .password-toggle-btn {
+  position: absolute;
+  right: 0.45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.35rem 0.5rem;
+  line-height: 1;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.15rem;
+  color: var(--brand-blue-bright, #4f8cff);
+  border-radius: 50%;
+  transition: background 0.15s ease;
+}
+
+.student-register-page .position-relative .password-toggle-btn:hover {
+  background: rgba(79, 140, 255, 0.1);
+}
+
+.student-register-page .position-relative .password-toggle-btn:focus-visible {
+  outline: 2px solid var(--brand-blue-bright, #4f8cff);
+  outline-offset: 2px;
+}
+
+.student-register-divider {
+  gap: 0.5rem;
+}
+
+.student-register-divider .student-register-divider-line {
+  flex: 1;
+  height: 1px;
+  background: #dee2e6;
+  min-width: 1rem;
+}
+
+.student-register-divider span {
+  text-align: center;
+  white-space: normal;
+  max-width: 100%;
+}
+
+@media (max-width: 400px) {
+  .student-register-divider span {
+    font-size: 0.72rem;
+  }
+}

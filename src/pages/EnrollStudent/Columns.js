@@ -1,5 +1,4 @@
  "use client";
-import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import { MdEdit, MdDelete } from "react-icons/md";
 import { BsSendPlus } from "react-icons/bs";
 
@@ -7,10 +6,13 @@ const Columns = ({ handleEdit, handleDelete, handleProvideLink, onlineStudentIds
   {
     name: "ID",
     cell: (row, index) => index + 1,
-    width: "60px",
+    width: "52px",
+    minWidth: "52px",
   },
   {
     name: "Name",
+    grow: 1.5,
+    minWidth: "110px",
     cell: (row) => {
       const isOnline = onlineStudentIds.some(
         (id) => String(id) === String(row._id)
@@ -36,13 +38,20 @@ const Columns = ({ handleEdit, handleDelete, handleProvideLink, onlineStudentIds
   {
     name: "Email",
     selector: (row) => row.email,
+    grow: 2,
+    minWidth: "140px",
   },
   {
     name: "Phone",
     selector: (row) => row.phone,
+    minWidth: "100px",
+    grow: 0,
   },
   {
     name: "Courses",
+    grow: 1.5,
+    minWidth: "120px",
+    wrap: true,
     cell: (row) => (
       <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
         {row.subject && row.subject.length > 0 ? (
@@ -89,64 +98,81 @@ const Columns = ({ handleEdit, handleDelete, handleProvideLink, onlineStudentIds
       </div>
     ),
   },
+  {
+    name: "Video lang",
+    width: "96px",
+    minWidth: "88px",
+    grow: 0,
+    cell: (row) =>
+      row.role === "teacher" ? (
+        <span className="text-muted">—</span>
+      ) : (
+        <span className="text-capitalize">{row.videoLanguage || "English"}</span>
+      ),
+  },
 
   {
     name: "Action",
+    button: true,
+    grow: 0,
+    minWidth: "148px",
+    width: "160px",
     cell: (row) => (
-      <div className="d-flex gap-2">
+      <div className="d-flex gap-2 align-items-center student-action-cell-inner">
         {row.role === "teacher" ? (
           <div className="text-center w-100">
-            <OverlayTrigger
-              placement="top"
-              overlay={<Tooltip>Admin Role</Tooltip>}
+            <button
+              type="button"
+              className="btn btn-sm btn-warning px-4"
+              title="Admin Role"
             >
-              <button className="btn btn-sm btn-warning px-4">Admin</button>
-            </OverlayTrigger>
+              Admin
+            </button>
           </div>
         ) : (
           <>
-            <OverlayTrigger
-              placement="top"
-              overlay={<Tooltip>Edit Student</Tooltip>}
+            <button
+              type="button"
+              className="btn btn-sm btn-success student-table-action-btn"
+              title="Edit Student"
+              onClick={() => handleEdit(row)}
             >
-              <button
-                className="btn btn-sm btn-success btnn"
-                onClick={() => handleEdit(row)}
-              >
-                <MdEdit size={25}  />
-              </button>
-            </OverlayTrigger>
+              <MdEdit size={22} />
+            </button>
 
-            <OverlayTrigger
-              placement="top"
-              overlay={<Tooltip>Delete Student</Tooltip>}
+            <button
+              type="button"
+              className="btn btn-sm btn-danger student-table-action-btn"
+              title="Delete Student"
+              onClick={() => handleDelete(row)}
             >
-              <button
-                className="btn btn-sm btn-danger"
-                onClick={() => handleDelete(row)}
-              >
-               <MdDelete size={25} />
-              </button>
-            </OverlayTrigger>
+              <MdDelete size={22} />
+            </button>
 
-            {/* ✅ Provide/Send Link Button with Tooltip */}
-            <OverlayTrigger
-              placement="top"
-              overlay={
-                <Tooltip>
-                  {row.hasLink ?  "Sended Google Meet Link":  "Provide Google Meet Link"}
-                </Tooltip>
+            <button
+              type="button"
+              className={`btn btn-sm student-table-action-btn ${
+                row.hasLink ? "ee" : "btn-primary"
+              }`}
+              title={
+                row.hasLink
+                  ? "Sended Google Meet Link"
+                  : "Provide Google Meet Link"
               }
+              onClick={() => handleProvideLink(row)}
             >
-              <button
-                className={`btn btn-sm ${
-                  row.hasLink ? "ee" : "btn-primary"
-                }`}
-                onClick={() => handleProvideLink(row)}
-              >
-                {row.hasLink ? <img src="/meet.png" alt="Provide Link" style={{ width: 28, height: 28 }} /> : <BsSendPlus size={25} /> }
-              </button>
-            </OverlayTrigger>
+              {row.hasLink ? (
+                <img
+                  src="/meet.png"
+                  alt=""
+                  width={24}
+                  height={24}
+                  style={{ display: "block" }}
+                />
+              ) : (
+                <BsSendPlus size={22} />
+              )}
+            </button>
           </>
         )}
       </div>

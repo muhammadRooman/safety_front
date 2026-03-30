@@ -53,7 +53,14 @@ export default function StudentEnrollList() {
     phone: "",
     subject: [],
     password: "",
+    videoLanguage: "English",
   });
+
+  const videoLanguageOptions = [
+    { value: "Urdu", label: "Urdu" },
+    { value: "English", label: "English" },
+    { value: "Arabic", label: "Arabic" },
+  ];
 
   // Provide Google Meet Link States
   const [provideLinkId, setProvideLinkId] = useState("");
@@ -189,6 +196,7 @@ export default function StudentEnrollList() {
       phone: row.phone || "",
       subject: Array.isArray(row.subject) ? row.subject : row.subject ? [row.subject] : [],
       password: "",
+      videoLanguage: row.videoLanguage || "English",
     });
     setShowAddModal(true);
   };
@@ -351,7 +359,7 @@ const handleProvideLink = async (row) => {
 
       setShowAddModal(false);
       setIsEdit(false);
-      setNewStudent({ name: "", email: "", phone: "", subject: [], password: "" });
+      setNewStudent({ name: "", email: "", phone: "", subject: [], password: "", videoLanguage: "English" });
     } catch (err) {
       toast.error("User already exists or error occurred");
     }
@@ -396,7 +404,7 @@ const handleProvideLink = async (row) => {
     <Col
 xs={12}
 md="auto"
-className="d-flex gap-2 justify-content-end flex-nowrap"
+className="d-flex gap-2 justify-content-end flex-wrap flex-md-nowrap"
 >
 {filteredItems.length > 0 && (
   <CSVLink
@@ -411,7 +419,12 @@ className="d-flex gap-2 justify-content-end flex-nowrap"
 <Button className="action-dark" onClick={() => { fetchBlogs(user.role) }}><IoMdRefresh size={25}/></Button>
 <Button
   className="buttonColor px-3 d-flex align-items-center"
-  onClick={() => { setIsEdit(false); setShowAddModal(true); }}
+  onClick={() => {
+            setIsEdit(false);
+            setEditId(null);
+            setNewStudent({ name: "", email: "", phone: "", subject: [], password: "", videoLanguage: "English" });
+            setShowAddModal(true);
+          }}
 >
   <IoMdAdd size={25} />Add Student
   <span className="ms-1 d-none d-sm-inline"></span>
@@ -421,8 +434,8 @@ className="d-flex gap-2 justify-content-end flex-nowrap"
 
 
     {cSVHide && (
-      <Row className="mb-3">
-        <Col xs={6} md={4}>
+      <Row className="mb-3 g-2">
+        <Col xs={12} sm={6} md={4}>
           <Form.Control
             type="text"
             placeholder="Search by name"
@@ -431,7 +444,7 @@ className="d-flex gap-2 justify-content-end flex-nowrap"
           />
         </Col>
     
-        <Col xs={6} md={4}>
+        <Col xs={12} sm={6} md={4}>
           <Form.Select
             value={filterCourse}
             onChange={(e) => setFilterCourse(e.target.value)}
@@ -444,7 +457,7 @@ className="d-flex gap-2 justify-content-end flex-nowrap"
             ))}
           </Form.Select>
         </Col>
-        <Col xs={6} md={4}>
+        <Col xs={12} sm={6} md={4}>
           <Form.Select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -459,11 +472,12 @@ className="d-flex gap-2 justify-content-end flex-nowrap"
       <Card>
         <Card.Body>
           <DataTable
+            className="student-enroll-datatable"
             columns={columns}
             data={filteredItems}
             pagination
-            onRowClicked={(row) => navigate(`/dashboard/messages`)} 
-            highlightOnHover
+            onRowClicked={(row) => navigate(`/dashboard/messages`)}
+            highlightOnHover={false}
             responsive
           />
         </Card.Body>
@@ -482,7 +496,14 @@ className="d-flex gap-2 justify-content-end flex-nowrap"
       </Modal>
 
       {/* Add/Edit Student Modal */}
-      <Modal show={showAddModal} onHide={() => setShowAddModal(false)} centered backdrop="static" keyboard={false}>
+      <Modal
+        show={showAddModal}
+        onHide={() => setShowAddModal(false)}
+        centered
+        scrollable
+        backdrop="static"
+        keyboard={false}
+      >
         <Form onSubmit={handleAddStudentSubmit}>
           <Modal.Header closeButton>
             <Modal.Title>{isEdit ? "Edit Student" : "Add Student"}</Modal.Title>
@@ -502,6 +523,24 @@ className="d-flex gap-2 justify-content-end flex-nowrap"
             <Form.Group className="mb-3">
               <Form.Label>Phone <span style={{ color: "red" }}>*</span></Form.Label>
               <Form.Control type="text" name="phone" value={newStudent.phone} onChange={handleAddStudentChange} required />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Course videos language</Form.Label>
+              <Form.Text className="d-block mb-2 text-muted" style={{ fontSize: "12px" }}>
+                This student will only see course videos uploaded in this language (Course Videos page). Example: Urdu for Pakistani students, English or Arabic as needed.
+              </Form.Text>
+              <Form.Select
+                name="videoLanguage"
+                value={newStudent.videoLanguage}
+                onChange={handleAddStudentChange}
+              >
+                {videoLanguageOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </Form.Select>
             </Form.Group>
 
             <Form.Group className="mb-3">

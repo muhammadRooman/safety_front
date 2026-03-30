@@ -291,23 +291,36 @@ const TeacherInfoList = () => {
         show={showPreviewModal}
         onHide={() => setShowPreviewModal(false)}
         centered
-        size="lg"
+        scrollable
+        size="md"
+        dialogClassName="teacher-info-preview-modal"
       >
         <Modal.Header closeButton>
           <Modal.Title>{previewItem?.title || "Teacher Info"}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="pt-0">
           {previewItem?.mediaType === "image" ? (
             <img
               src={getMediaSrc(previewItem?.mediaUrl)}
               alt={previewItem?.title || "Teacher info"}
-              style={{ width: "100%", maxHeight: "75vh", objectFit: "contain" }}
+              style={{
+                width: "100%",
+                maxHeight: "min(42vh, 320px)",
+                objectFit: "contain",
+                display: "block",
+                margin: "0 auto",
+              }}
             />
           ) : (
             <video
               controls
               src={getMediaSrc(previewItem?.mediaUrl)}
-              style={{ width: "100%", maxHeight: "75vh" }}
+              style={{
+                width: "100%",
+                maxHeight: "min(42vh, 320px)",
+                display: "block",
+                margin: "0 auto",
+              }}
             />
           )}
 

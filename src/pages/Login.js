@@ -204,11 +204,11 @@ function Login() {
 
                     <div className="my-4 d-flex align-items-center">
                       <div style={{ flex: 1, height: 1, background: "#dee2e6" }} />
-                      <span className="mx-3 text-muted small">or</span>
+                       <span className="mx-3 text-muted small">Farooq Khan (CEO)</span>
                       <div style={{ flex: 1, height: 1, background: "#dee2e6" }} />
                     </div>
 
-                    <div className="text-center">
+                    {/* <div className="text-center">
                       <div>
                         <span className="text-muted">Don't have an account? </span>
                         <Link
@@ -221,7 +221,7 @@ function Login() {
                       </div>
 
                      
-                    </div>
+                    </div> */}
                   </div>
                 </Col>
               </Row>

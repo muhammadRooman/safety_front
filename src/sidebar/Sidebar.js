@@ -11,6 +11,7 @@ import {
   FaFilm,
   FaUserCircle,
   FaInfoCircle,
+  FaBriefcase,
 } from 'react-icons/fa';
 import { HiUsers } from 'react-icons/hi2';
 import { logout } from '../redux/Auth/AuthSlice';
@@ -18,6 +19,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { LuMessageSquareText, LuNotebookPen } from "react-icons/lu";
+import { IoPersonAddSharp } from 'react-icons/io5';
 
 const Sidebar = () => {
   const { t } = useTranslation();
@@ -254,12 +256,12 @@ const Sidebar = () => {
                 width: 10,
                 height: 10,
                 borderRadius: "50%",
-                backgroundColor: "#28a745",
-                boxShadow: "0 0 4px rgba(40,167,69,0.8)",
+                backgroundColor: "rgb(53 255 99)",
+                boxShadow: "0 0 4px rgb(53 255 99)",
               }}
             />
             <FaUserCircle size={22} className="me-1" />
-            <span>
+            <span >
               {user?.role === 'teacher'
                 ? t('Admin')
                 : user?.role === 'student'
@@ -291,6 +293,14 @@ const Sidebar = () => {
               >
                 <HiUsers size={25} className="me-3" /> {t('Students')}
               </Nav.Link>
+              <Nav.Link
+                as={Link}
+                to="/dashboard/studentRegister"
+                className={`sidebar-link ${isActive('/dashboard/studentRegister') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <IoPersonAddSharp  size={25} className="me-3" /> {t('Register')}
+              </Nav.Link>
 
               <Nav.Link
                 as={Link}
@@ -310,18 +320,22 @@ const Sidebar = () => {
                 <LuNotebookPen  size={25} className="me-3" /> Manage Courses
               </Nav.Link>
 
-             { /**
-              { 
-               <Nav.Link
+              <Nav.Link
                 as={Link}
-              to="/dashboard/contact_us"
-             className={`sidebar-link ${isActive('/dashboard/contact_us') ? 'active' : ''}`}
-              onClick={closeSidebar}
-           >
-              <LuMessageSquareText size={25} className="me-3" /> {t('Contect_us')}
-            </Nav.Link> 
-              }  */}
-            
+                to="/dashboard/post-job"
+                className={`sidebar-link ${isActive('/dashboard/post-job') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaBriefcase size={22} className="me-3" /> Post a Job
+              </Nav.Link>
+              <Nav.Link
+                as={Link}
+                to="/dashboard/all-jobs"
+                className={`sidebar-link ${isActive('/dashboard/all-jobs') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaBriefcase size={22} className="me-3" /> All Jobs
+              </Nav.Link>
 
               <Nav.Link
                 as={Link}
@@ -395,6 +409,15 @@ const Sidebar = () => {
               >
                 <LuNotebookPen size={25} className="me-3" /> {t('ohs_course')}
               </Nav.Link>
+
+              <Nav.Link
+                as={Link}
+                to="/dashboard/jobs-board"
+                className={`sidebar-link ${isActive('/dashboard/jobs-board') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaBriefcase size={22} className="me-3" /> Browse Jobs
+              </Nav.Link>
  
               <Nav.Link
                 as={Link}
@@ -444,6 +467,7 @@ const Sidebar = () => {
         show={showLogoutModal}
         onHide={() => setShowLogoutModal(false)}
         centered
+        size="sm"
         backdrop="static"
         keyboard={false}
       >

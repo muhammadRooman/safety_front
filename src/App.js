@@ -15,7 +15,16 @@ function App() {
         <BrowserRouter>
           <AuthSessionGuard />
           <AppRoutes />
-          <ToastContainer />
+          <ToastContainer
+            position="top-right"
+            autoClose={4000}
+            newestOnTop
+            closeOnClick
+            pauseOnHover
+            limit={4}
+            style={{ width: 'auto', maxWidth: 'min(420px, calc(100vw - 1rem))' }}
+            toastStyle={{ maxWidth: '100%' }}
+          />
         </BrowserRouter>
       </PersistGate>
     </Provider>
