@@ -6,6 +6,7 @@ import { MdDelete, MdEdit } from "react-icons/md";
 import DataTable from "react-data-table-component";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FaFilePdf } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 
 import {
@@ -50,6 +51,7 @@ export default function CourseVideoList() {
   const [editId, setEditId] = useState(null);
   const [uploadForm, setUploadForm] = useState({ title: "", courseType: "", language: "English" });
   const [videoFile, setVideoFile] = useState(null);
+  const [pdfFile, setPdfFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Delete Modal States
@@ -108,6 +110,8 @@ export default function CourseVideoList() {
       formData.append("language", lang);
       formData.append("videoLang", lang);
       if (videoFile) formData.append("video", videoFile);
+      // Optional course attachment for students (PDF). If empty, backend keeps existing.
+      if (pdfFile) formData.append("pdf", pdfFile);
 
       // Do not set Content-Type manually — browser/axios must add multipart boundary.
       const authHeaders = { Authorization: `Bearer ${token}` };
@@ -140,6 +144,7 @@ export default function CourseVideoList() {
   const resetForm = () => {
     setUploadForm({ title: "", courseType: "", language: "English" });
     setVideoFile(null);
+    setPdfFile(null);
     setEditId(null);
     setEditMode(false);
   };
@@ -214,14 +219,41 @@ export default function CourseVideoList() {
       },
     },
     {
-      name: "Downloads",
+      name: "Documents",
       cell: (row) => {
-        const videoUrl = `${process.env.REACT_APP_BASE_uploads}/${row.videoUrl}`;
+     
+        const fileUrl = row.fileUrl
+          ? `${process.env.REACT_APP_BASE_uploads}/${row.fileUrl}`
+          : "";
 
         return (
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             
+            {row.fileUrl && (
+              <a
+                href={fileUrl}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Open Course File"
+                style={{ color: "#6f42c1", textDecoration: "none" }}
+              >
+                <FaFilePdf size={22} title="Open Course File" />
+              </a>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      name: "Downloads",
+      cell: (row) => {
+        const videoUrl = `${process.env.REACT_APP_BASE_uploads}/${row.videoUrl}`;
+    
 
+        return (
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            
             <a
               href={videoUrl}
               download
@@ -231,10 +263,13 @@ export default function CourseVideoList() {
             >
               <FaDownload size={22}  title="Download Video"/>
             </a>
+
+          
           </div>
         );
       },
     },
+   
     {
       name: "Action",
       cell: (row) => (
@@ -250,6 +285,7 @@ export default function CourseVideoList() {
                 language: row.language || "English",
               });
               setVideoFile(null);
+              setPdfFile(null);
               setEditMode(true);
               setShowModal(true);
             }}
@@ -463,6 +499,19 @@ onChange={(e) => setFilterCourseType(e.target.value)}
                 onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
                 required={!editMode}
               />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>
+                Course File (PDF) {editMode ? "(Optional)" : "(Optional)"}
+              </Form.Label>
+              <Form.Control
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+              />
+              <Form.Text className="text-muted d-block" style={{ fontSize: 12 }}>
+                Admin may upload a PDF attachment. If left empty, students will not see a file link.
+              </Form.Text>
             </Form.Group>
           </Modal.Body>
           <Modal.Footer>

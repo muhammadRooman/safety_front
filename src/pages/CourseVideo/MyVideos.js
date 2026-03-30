@@ -13,6 +13,7 @@ import {
   Tabs,
   Tab,
 } from "react-bootstrap";
+import { FaDownload } from "react-icons/fa";
 
 export default function MyVideos() {
   const navigate = useNavigate();
@@ -164,6 +165,26 @@ export default function MyVideos() {
   style={{ width: "100%", maxHeight: 200 }}
   src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`}
 />
+                  {v.fileUrl && (
+                   <div className="mt-2">
+  <a
+    href={`${process.env.REACT_APP_BASE_uploads}/${v.fileUrl}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{
+      color: "#6f42c1",
+      textDecoration: "none",
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 8,
+    }}
+    title="Open course file"
+  >
+    <FaDownload />
+    Open course file
+  </a>
+</div>
+                  )}
                   </Card.Body>
                 </Card>
               </Col>

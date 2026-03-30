@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Container, ListGroup, Form, Button, Badge, Card } from "react-bootstrap";
+import { Container, ListGroup, Form, Button, Badge, Modal } from "react-bootstrap";
 import { io } from "socket.io-client";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -18,55 +18,44 @@ const AdminMessages = () => {
   const [input, setInput] = useState("");
   const [unread, setUnread] = useState({});
   const [onlineStudentIds, setOnlineStudentIds] = useState([]);
-  // Left list filter: all / online-active / offline-inactive
   const [statusFilter, setStatusFilter] = useState("all");
+  const [showClearModal, setShowClearModal] = useState(false);
+
   const messagesEndRef = useRef(null);
 
-  // Initial load from localStorage so data survive tab changes / reload
+  // Initial load from localStorage
   useEffect(() => {
     try {
       const stored = localStorage.getItem("adminMessages");
-      if (stored) {
-        setMessages(JSON.parse(stored));
-      }
+      if (stored) setMessages(JSON.parse(stored));
 
       const storedUnread = localStorage.getItem("adminMessagesUnread");
-      if (storedUnread) {
-        setUnread(JSON.parse(storedUnread));
-      }
+      if (storedUnread) setUnread(JSON.parse(storedUnread));
     } catch (e) {
       console.error("Failed to parse stored admin messages", e);
     }
   }, []);
 
+  // Socket Connection
   useEffect(() => {
-    const s = io(SOCKET_URL, {
-      transports: ["websocket"],
-    });
+    const s = io(SOCKET_URL, { transports: ["websocket"] });
     setSocket(s);
-
     s.emit("join-admin");
 
-    // Get current online student list immediately
     s.on("online-students", ({ studentIds }) => {
-      if (!Array.isArray(studentIds)) return;
-      setOnlineStudentIds(studentIds.map(String));
+      setOnlineStudentIds(Array.isArray(studentIds) ? studentIds.map(String) : []);
     });
 
     s.on("student-online", ({ studentId }) => {
       if (!studentId) return;
       const sid = String(studentId);
-      setOnlineStudentIds((prev) =>
-        prev.includes(sid) ? prev : [...prev, sid]
-      );
+      setOnlineStudentIds((prev) => prev.includes(sid) ? prev : [...prev, sid]);
     });
 
     s.on("student-offline", ({ studentId }) => {
       if (!studentId) return;
       const sid = String(studentId);
-      setOnlineStudentIds((prev) =>
-        prev.filter((id) => String(id) !== sid)
-      );
+      setOnlineStudentIds((prev) => prev.filter((id) => id !== sid));
     });
 
     const playTone = () => {
@@ -82,85 +71,45 @@ const AdminMessages = () => {
 
       setMessages((prev) => {
         const previousList = prev[studentId] || [];
-        const nextList = [...previousList, msg];
-        const limitedList =
-          nextList.length > 100 ? nextList.slice(nextList.length - 100) : nextList;
-
-        const updated = {
-          ...prev,
-          [studentId]: limitedList,
-        };
-        try {
-          localStorage.setItem("adminMessages", JSON.stringify(updated));
-        } catch (e) {
-          console.error("Failed to store admin messages", e);
-        }
+        const nextList = [...previousList, msg].slice(-100);
+        const updated = { ...prev, [studentId]: nextList };
+        try { localStorage.setItem("adminMessages", JSON.stringify(updated)); } catch (e) {}
         return updated;
       });
 
-      // Play tone only for messages coming from student
-      if (msg.from !== "admin") {
-        playTone();
-      }
+      if (msg.from !== "admin") playTone();
 
       if (!activeStudent || activeStudent._id !== studentId) {
         setUnread((prev) => {
-          const updated = {
-            ...prev,
-            [studentId]: (prev[studentId] || 0) + 1,
-          };
-          try {
-            localStorage.setItem(
-              "adminMessagesUnread",
-              JSON.stringify(updated)
-            );
-          } catch (e) {
-            console.error("Failed to store admin unread", e);
-          }
+          const updated = { ...prev, [studentId]: (prev[studentId] || 0) + 1 };
+          try { localStorage.setItem("adminMessagesUnread", JSON.stringify(updated)); } catch (e) {}
           return updated;
         });
       }
     });
 
-    // Seen status updates for messages (delivered/seen ticks)
     s.on("message-seen-updated", ({ messages: updatedMessages }) => {
-      if (!Array.isArray(updatedMessages) || updatedMessages.length === 0) return;
-
+      if (!Array.isArray(updatedMessages)) return;
       setMessages((prev) => {
         const next = { ...prev };
-
         updatedMessages.forEach((um) => {
-          if (!um) return;
+          if (!um?._id) return;
           const sid = um.from === "admin" ? um.to : um.from;
-          const list = next[sid] || [];
-          const updatedList = list.map((m) => {
-            if (m && um && m._id && um._id && String(m._id) === String(um._id)) {
-              return { ...m, ...um };
-            }
-            return m;
-          });
-          next[sid] = updatedList;
+          if (next[sid]) {
+            next[sid] = next[sid].map((m) =>
+              String(m._id) === String(um._id) ? { ...m, ...um } : m
+            );
+          }
         });
-
-        try {
-          localStorage.setItem("adminMessages", JSON.stringify(next));
-        } catch (e) {}
-
+        try { localStorage.setItem("adminMessages", JSON.stringify(next)); } catch (e) {}
         return next;
       });
     });
 
-    s.on("admin-alert", (alert) => {
-      if (alert?.type === "new-message") {
-        toast.info(`New message from student: ${alert.from}`);
-      }
-    });
-
-    return () => {
-      s.disconnect();
-    };
+    return () => s.disconnect();
   }, [activeStudent]);
 
+  // Fetch Students
   useEffect(() => {
     const fetchStudents = async () => {
       try {
@@ -168,43 +117,32 @@ const AdminMessages = () => {
           `${process.env.REACT_APP_BASE_ADMIN_API}/auth/getAllUsers`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        const users = res.data.users || [];
-        const onlyStudents = users.filter((u) => u.role !== "teacher");
+        const onlyStudents = (res.data.users || []).filter((u) => u.role !== "teacher");
         setStudents(onlyStudents);
       } catch (error) {
         toast.error("Failed to load students list");
       }
     };
-
-    if (token) {
-      fetchStudents();
-    }
+    if (token) fetchStudents();
   }, [token]);
 
-  // Auto-select active student (prefer unread), so chat starts immediately
+  // Auto-select student
   useEffect(() => {
-    if (activeStudent || !students || students.length === 0) return;
+    if (activeStudent || !students.length) return;
     const pick = students.find((s) => unread[String(s._id)] > 0) || students[0];
     if (pick) setActiveStudent(pick);
-  }, [students, unread, activeStudent]);
+  }, [students, unread]);
 
   const handleSelectStudent = (student) => {
     setActiveStudent(student);
     setUnread((prev) => {
       const updated = { ...prev, [student._id]: 0 };
-      try {
-        localStorage.setItem(
-          "adminMessagesUnread",
-          JSON.stringify(updated)
-        );
-      } catch (e) {
-        console.error("Failed to store admin unread", e);
-      }
+      try { localStorage.setItem("adminMessagesUnread", JSON.stringify(updated)); } catch (e) {}
       return updated;
     });
   };
 
-  // Load conversation from DB when selecting a student
+  // Load from DB (only when activeStudent changes and it's not just cleared)
   useEffect(() => {
     const loadFromDb = async () => {
       if (!activeStudent?._id || !token) return;
@@ -214,73 +152,54 @@ const AdminMessages = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const list = res.data?.messages || [];
-        // Merge with any socket messages that arrived while DB was loading.
+
         setMessages((prev) => {
           const currentList = prev[activeStudent._id] || [];
           const merged = [...currentList, ...list];
-
-          const seen = new Map();
-          for (const m of merged) {
-            if (m?._id) {
-              seen.set(String(m._id), m);
-            }
-          }
-          const deduped = Array.from(seen.values());
-          deduped.sort(
-            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          );
+          const seen = new Map(merged.map((m) => [String(m?._id), m]));
+          const deduped = Array.from(seen.values())
+            .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
           const updated = { ...prev, [activeStudent._id]: deduped.slice(-100) };
-          try {
-            localStorage.setItem("adminMessages", JSON.stringify(updated));
-          } catch (e) {}
+          try { localStorage.setItem("adminMessages", JSON.stringify(updated)); } catch (e) {}
           return updated;
         });
       } catch (e) {
-        // keep local cache if API fails
+        console.error("DB load failed", e);
       }
     };
     loadFromDb();
   }, [activeStudent?._id, token]);
 
-  const activeChatMessages = useMemo(
-    () => (activeStudent ? messages[activeStudent._id] || [] : []),
+  const activeChatMessages = useMemo(() => 
+    activeStudent ? messages[activeStudent._id] || [] : [], 
     [messages, activeStudent]
   );
 
   const displayedStudents = useMemo(() => {
     if (!Array.isArray(students)) return [];
-    if (statusFilter === "active") {
-      return students.filter((s) => onlineStudentIds.includes(String(s._id)));
-    }
-    if (statusFilter === "inactive") {
-      return students.filter((s) => !onlineStudentIds.includes(String(s._id)));
-    }
+    if (statusFilter === "active") return students.filter(s => onlineStudentIds.includes(String(s._id)));
+    if (statusFilter === "inactive") return students.filter(s => !onlineStudentIds.includes(String(s._id)));
     return students;
   }, [students, onlineStudentIds, statusFilter]);
 
-  // Auto-scroll to bottom when active chat messages change
+  // Auto-scroll
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
-    }
-  }, [activeChatMessages.length, activeStudent?._id]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [activeChatMessages.length]);
 
   const handleSend = (e) => {
     e.preventDefault();
     if (!socket || !activeStudent || !input.trim()) return;
 
-    const text = input.trim();
-
     socket.emit("admin-send-message", {
       studentId: activeStudent._id,
-      message: text,
+      message: input.trim(),
     });
-
     setInput("");
   };
 
-  // When chat is open, mark student messages as seen
+  // Mark as seen
   useEffect(() => {
     if (!socket || !activeStudent?._id) return;
     const sid = String(activeStudent._id);
@@ -292,31 +211,65 @@ const AdminMessages = () => {
 
     if (unseenIds.length === 0) return;
 
-    // optimistic update so ticks change instantly
     setMessages((prev) => {
       const updated = { ...prev };
       const list = updated[sid] || [];
-      updated[sid] = list.map((m) => {
-        if (m?._id && unseenIds.some((id) => String(id) === String(m._id))) {
-          return {
-            ...m,
-            seenByAdmin: true,
-            seenAtAdmin: new Date().toISOString(),
-          };
-        }
-        return m;
-      });
-      try {
-        localStorage.setItem("adminMessages", JSON.stringify(updated));
-      } catch (e) {}
+      updated[sid] = list.map((m) =>
+        unseenIds.some((id) => String(id) === String(m._id))
+          ? { ...m, seenByAdmin: true, seenAtAdmin: new Date().toISOString() }
+          : m
+      );
+      try { localStorage.setItem("adminMessages", JSON.stringify(updated)); } catch (e) {}
       return updated;
     });
 
-    socket.emit("admin-mark-seen", {
-      studentId: sid,
-      messageIds: unseenIds,
-    });
+    socket.emit("admin-mark-seen", { studentId: sid, messageIds: unseenIds });
   }, [socket, activeStudent?._id, activeChatMessages]);
+
+  // ====================== CLEAR HISTORY ======================
+  const handleClearHistory = async () => {
+    if (!activeStudent?._id || !token) return;
+
+    const sid = activeStudent._id;
+
+    // 1. Clear from state
+    setMessages((prev) => {
+      const updated = { ...prev };
+      delete updated[sid];
+      return updated;
+    });
+
+    // 2. Clear localStorage completely
+    try {
+      localStorage.removeItem(`studentMessages_${sid}`);
+      localStorage.setItem(`studentMessagesAlert_${sid}`, "false");
+      
+      // Also remove from main admin storage
+      const currentMessages = JSON.parse(localStorage.getItem("adminMessages") || "{}");
+      delete currentMessages[sid];
+      localStorage.setItem("adminMessages", JSON.stringify(currentMessages));
+    } catch (e) {
+      console.error("Local clear failed", e);
+    }
+
+    // 3. Clear from Database
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_BASE_ADMIN_API}/messages/conversation/${sid}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (e) {
+      console.error("Server clear failed", e);
+    }
+
+    // 4. Close modal + small delay then reset activeStudent
+    setShowClearModal(false);
+    
+    setTimeout(() => {
+      setActiveStudent(null);        // Important: Reset so loadFromDb doesn't run again immediately
+      toast.success(`Chat history with ${activeStudent.name} cleared successfully`);
+    }, 300);
+  };
 
   return (
     <Container fluid className="admin-messages-page py-3 px-3 px-md-4">
@@ -326,7 +279,6 @@ const AdminMessages = () => {
             <h2 className="admin-messages-sidebar-title">Students Messages</h2>
             <Form.Select
               size="sm"
-              aria-label="Filter students by online status"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="admin-messages-filter"
@@ -336,6 +288,7 @@ const AdminMessages = () => {
               <option value="inactive">🔴 Unactive (Offline)</option>
             </Form.Select>
           </div>
+
           <div className="admin-messages-list-wrap">
             <ListGroup className="admin-messages-list">
               {displayedStudents.map((s) => (
@@ -347,35 +300,18 @@ const AdminMessages = () => {
                   className="d-flex justify-content-between align-items-center"
                 >
                   <span className="d-flex align-items-center gap-2 min-w-0">
-                    {(() => {
-                      const isOnline = onlineStudentIds.some(
-                        (id) => String(id) === String(s._id)
-                      );
-
-                      return (
-                        <span
-                          className="flex-shrink-0"
-                          style={{
-                            display: "inline-block",
-                            width: 10,
-                            height: 10,
-                            borderRadius: "50%",
-                            backgroundColor: isOnline ? "#28a745" : "#dc3545",
-                            boxShadow: `0 0 4px ${
-                              isOnline
-                                ? "rgba(40,167,69,0.8)"
-                                : "rgba(220,53,69,0.8)"
-                            }`,
-                          }}
-                        />
-                      );
-                    })()}
-
+                    <span
+                      style={{
+                        display: "inline-block",
+                        width: 10,
+                        height: 10,
+                        borderRadius: "50%",
+                        backgroundColor: onlineStudentIds.includes(String(s._id)) ? "#28a745" : "#dc3545",
+                      }}
+                    />
                     <span className="d-block min-w-0 text-truncate">
                       <span className="d-block text-truncate">{s.name}</span>
-                      <small className="text-muted d-block text-truncate">
-                        {s.email}
-                      </small>
+                      <small className="text-muted d-block text-truncate">{s.email}</small>
                     </span>
                   </span>
 
@@ -387,42 +323,6 @@ const AdminMessages = () => {
                 </ListGroup.Item>
               ))}
             </ListGroup>
-          </div>
-          <div className="admin-messages-preview">
-            {activeChatMessages && activeChatMessages.length > 0 && (
-              <Card className="last-message-card border-0">
-                <Card.Body>
-                  <h6 className="title">Last Message</h6>
-
-                  {activeChatMessages.length > 0 ? (
-                    <>
-                      {activeChatMessages.slice(-1).map((msg) => {
-                        const isAdminMsg = msg?.from === "admin";
-
-                        return (
-                          <div
-                            key={msg?._id || msg?.createdAt || msg?.message}
-                            className={`d-flex ${
-                              isAdminMsg
-                                ? "justify-content-end"
-                                : "justify-content-start"
-                            } mb-2`}
-                          >
-                            <div
-                              className={`bubble ${isAdminMsg ? "you" : "student"}`}
-                            >
-                              {msg?.message}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </>
-                  ) : (
-                    <p className="text-muted mb-0">No messages yet</p>
-                  )}
-                </Card.Body>
-              </Card>
-            )}
           </div>
         </aside>
 
@@ -436,77 +336,39 @@ const AdminMessages = () => {
                     ({activeStudent.email})
                   </small>
                 </h2>
+
                 <Button
                   variant="outline-danger"
                   size="sm"
-                  className="admin-messages-clear-btn"
-                  onClick={() => {
-                    setMessages([]);
-                    try {
-                      localStorage.removeItem(
-                        `studentMessages_${activeStudent._id}`
-                      );
-                      localStorage.setItem(
-                        `studentMessagesAlert_${activeStudent._id}`,
-                        "false"
-                      );
-                    } catch (e) {
-                      console.error("Failed to clear student history", e);
-                    }
-
-                    axios
-                      .delete(
-                        `${process.env.REACT_APP_BASE_ADMIN_API}/messages/conversation/${activeStudent._id}`,
-                        { headers: { Authorization: `Bearer ${token}` } }
-                      )
-                      .catch(() => {});
-                  }}
+                  onClick={() => setShowClearModal(true)}
                 >
                   Clear History
                 </Button>
               </div>
 
               <div className="admin-messages-thread">
-                <div className="admin-messages-thread-header">
-                  <span className="admin-messages-thread-label">Student</span>
-                  <span className="admin-messages-thread-name">
-                    {activeStudent.name}
-                  </span>
-                </div>
                 {activeChatMessages.map((m, idx) => {
                   const isAdmin = m.from === "admin";
                   const deliveredToStudent = !!m?.deliveredToStudent;
                   const seenByStudent = !!m?.seenByStudent;
-                  const ticks = seenByStudent
-                    ? "✓✓"
-                    : deliveredToStudent
-                      ? "✓"
-                      : "";
-                  const tickColor = seenByStudent ? "#198754" : "#6c757d";
+                  const ticks = seenByStudent ? "✓✓" : deliveredToStudent ? "✓" : "";
+
                   return (
                     <div
                       key={idx}
-                      className={`admin-msg-row ${
-                        isAdmin ? "admin-msg-row--out" : "admin-msg-row--in"
-                      }`}
+                      className={`admin-msg-row ${isAdmin ? "admin-msg-row--out" : "admin-msg-row--in"}`}
                     >
-                      <div
-                        className={`admin-msg-bubble ${
-                          isAdmin
-                            ? "admin-msg-bubble--admin"
-                            : "admin-msg-bubble--student"
-                        }`}
-                      >
+                      <div className={`admin-msg-bubble ${isAdmin ? "admin-msg-bubble--admin" : "admin-msg-bubble--student"}`}>
                         <div>{m.message}</div>
                         <div className="admin-msg-meta">
                           <span>
-                            {new Date(m.createdAt).toLocaleTimeString()}
+                            {new Date(m.createdAt).toLocaleTimeString([], { 
+                              hour: 'numeric', 
+                              minute: '2-digit' 
+                            })}
                           </span>
                           {isAdmin && ticks && (
-                            <span
-                              className="admin-msg-ticks"
-                              style={{ color: tickColor }}
-                            >
+                            <span className="admin-msg-ticks" style={{ color: seenByStudent ? "#28a745" : "black" }}>
                               {ticks}
                             </span>
                           )}
@@ -518,16 +380,12 @@ const AdminMessages = () => {
                 <div ref={messagesEndRef} />
               </div>
 
-              <Form
-                onSubmit={handleSend}
-                className="admin-messages-composer"
-              >
-                <div className="admin-messages-composer-inner">
+              <Form onSubmit={handleSend} className="admin-messages-composer ">
+                <div className="admin-messages-composer-inner ">
                   <Form.Control
                     placeholder="Type a message..."
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    aria-label="Message text"
                   />
                   <Button type="submit" className="buttonColor">
                     Send
@@ -537,16 +395,33 @@ const AdminMessages = () => {
             </>
           ) : (
             <div className="admin-messages-empty">
-              <p className="text-muted mb-0">
-                Select a student from the left list to start chat.
-              </p>
+              <p className="text-muted mb-0">Select a student from the left list to start chat.</p>
             </div>
           )}
         </section>
       </div>
+
+      {/* Clear History Modal */}
+      <Modal show={showClearModal} onHide={() => setShowClearModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Clear Chat History</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete the entire chat history?<br />
+          This action <strong>cannot be undone</strong>.
+        </Modal.Body> 
+    
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowClearModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleClearHistory}>
+            Yes, Clear History
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };
 
 export default AdminMessages;
-
