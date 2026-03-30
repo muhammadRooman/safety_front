@@ -2,7 +2,9 @@ import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
+import { FcAdvertising } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
+import { BsFillBuildingsFill } from "react-icons/bs";
 import { 
   Container, Row, Col, Card, Breadcrumb, Badge, Button, 
   Modal 
@@ -59,7 +61,7 @@ export default function JobsBoard() {
         <Breadcrumb.Item active>Browse Jobs</Breadcrumb.Item>
       </Breadcrumb>
 
-      <h3 className="mb-4 fw-semibold name_heading">Browse Jobs</h3>
+      <h3 className="mb-4 mb- fw-semibold name_heading">Browse Jobs <span className="arrow"> <FcAdvertising size={24} /></span></h3>
 
       {loading ? (
         <p>Loading…</p>
@@ -81,6 +83,7 @@ export default function JobsBoard() {
                 <Card className="h-100 shadow-sm border-0 job-card">
                   <Card.Body>
                     {/* Job Title Header */}
+                    
                     <div
                       className="d-flex  align-items-center mb-2"
                       style={{
@@ -92,10 +95,13 @@ export default function JobsBoard() {
                         justifyContent:"space-between"
                       }}
                     >
-                    <div className="d-flex align-items-center gap-5">
-                    <span className="h6 fw-bold mb-0">Job Title</span>
+                    
+                    <div className="d-flex align-items-center gap-2">
+                
+                
                   
-                    <span className="arrow">→</span>
+                   
+                 
                   
                     <Card.Title className="h6 fw-bold mb-0">
                       {job.title}
@@ -124,20 +130,20 @@ export default function JobsBoard() {
 
                     {/* Company Name */}
                     {job.postMode === "manual" && job.companyName && (
-                      <div className="small text-muted mb-2 fw-semibold">{job.companyName}</div>
+                     <div className="small text-muted mb-2 fw-semibold">   <BsFillBuildingsFill size={15} /> {job.companyName}</div>
                     )}
 
                     {/* Location & Job Type */}
                     <div className="small text-muted mb-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
                       {job.location && (
                         <span>
-                          <FaMapMarkerAlt className="me-1" />
+                          <FaMapMarkerAlt size={15} className="me-1" />
                           <strong>{job.location}</strong>
                         </span>
                       )}
                       {job.jobType && (
                         <span>
-                          <FaBriefcase className="me-1" />
+                          <FaBriefcase size={15} className="me-1" />
                           <strong>{job.jobType}</strong>
                         </span>
                       )}

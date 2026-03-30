@@ -83,7 +83,7 @@ export default function AllJobs() {
       wrap: true,
     },
     {
-      name: "Type",
+      name: "Apply",
       width: "110px",
       cell: (row) => (
         <Badge bg={row.postMode === "image" ? "info" : "secondary"}>

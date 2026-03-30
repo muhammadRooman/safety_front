@@ -3,7 +3,6 @@ import React, { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../sidebar/Sidebar';           // adjust path
 import Navbar from '../sidebar/TopNavbar';            // adjust path
-import LoaderOverlay from "./LoaderOverlay";
 import { useLoader } from "./LoaderContext";
 import RouteProgress from '../RouteProgress';
 import { SidebarProvider } from '../context/SidebarContext'; // new
@@ -22,7 +21,6 @@ const Layout = () => {
     <SidebarProvider>
       <div className="layout-wrapper">
         <RouteProgress />
-        <LoaderOverlay />
 
         {/* Sidebar */}
         <Sidebar />
