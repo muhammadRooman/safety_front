@@ -12,6 +12,7 @@ import {
   FaUserCircle,
   FaInfoCircle,
   FaBriefcase,
+  FaVideo,
 } from 'react-icons/fa';
 import { HiUsers } from 'react-icons/hi2';
 import { logout } from '../redux/Auth/AuthSlice';
@@ -308,7 +309,7 @@ const Sidebar = () => {
                 className={`sidebar-link ${isActive('/dashboard/course-videos') ? 'active' : ''}`}
                 onClick={closeSidebar}
               >
-                <FaFilm className="me-3" /> {t('COURSE_VIDEOS')}
+                <FaFilm   size={25}  className="me-3" /> {t('COURSE_VIDEOS')}
               </Nav.Link>
 
               <Nav.Link
@@ -319,7 +320,23 @@ const Sidebar = () => {
               >
                 <LuNotebookPen  size={25} className="me-3" /> Manage Courses
               </Nav.Link>
-
+ <Nav.Link
+                as={Link}
+                to="/dashboard/admin_live_class"
+                className={`sidebar-link ${isActive('/dashboard/admin_live_class') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+               <FaVideo size={25} className="me-3" style={{ color: "green" }} />
+{t('Live Class')}
+              </Nav.Link>
+                <Nav.Link
+                as={Link}
+                to="/dashboard/see_all_teacher_enroll"
+                className={`sidebar-link ${isActive('/dashboard/see_all_teacher_enroll') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaChalkboardTeacher size={25} className="me-3" /> {t('TEACHERS')}
+              </Nav.Link>
               <Nav.Link
                 as={Link}
                 to="/dashboard/post-job"
@@ -337,14 +354,7 @@ const Sidebar = () => {
                 <FaBriefcase size={22} className="me-3" /> All Jobs
               </Nav.Link>
 
-              <Nav.Link
-                as={Link}
-                to="/dashboard/see_all_teacher_enroll"
-                className={`sidebar-link ${isActive('/dashboard/see_all_teacher_enroll') ? 'active' : ''}`}
-                onClick={closeSidebar}
-              >
-                <FaChalkboardTeacher size={25} className="me-3" /> {t('TEACHERS')}
-              </Nav.Link>
+            
 
   
  
@@ -390,6 +400,14 @@ const Sidebar = () => {
                 onClick={closeSidebar}
               >
                 <FaFilm size={25} className="me-3" /> {t('MY_VIDEOS')}
+              </Nav.Link>
+              <Nav.Link
+                as={Link}
+                to="/dashboard/student_live_class"
+                className={`sidebar-link ${isActive('/dashboard/student_live_class') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaVideo size={25} className="me-3" style={{ color: "green" }}  /> {t('Join Live Class')}
               </Nav.Link>
 
               <Nav.Link

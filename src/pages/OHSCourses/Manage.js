@@ -1,37 +1,34 @@
 import React, { useEffect, useState } from "react";
-import { Breadcrumb, Container, Row, Col, Form, Button, Modal, Alert } from "react-bootstrap";
+import { 
+  Breadcrumb, 
+  Container, 
+  Row, 
+  Col, 
+  Form, 
+  Button, 
+  Modal, 
+  Alert,
+  Card 
+} from "react-bootstrap";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
-import { MdDelete, MdEdit } from "react-icons/md";
+import { MdDelete, MdEdit, MdAdd } from "react-icons/md";
 
 const DEFAULT_COURSES = [
-  "NEBOSH",
-  "IOSH",
-  "OSHA",
-  "Rigger 1",
-  "Rigger 2",
-  "RIGGER3",
-  "Risk Assessment",
-  "First Aid",
-  "Fire Safety",
-  "Safety Management",
-  "Fair Safety",
-  "Electrical Safety",
-  "Construction Safety",
-  "Confined Space Training",
-  "Lifting & Rigging Safety",
-  "Chemical Handling Safety",
+  "NEBOSH", "IOSH", "OSHA", "Rigger 1", "Rigger 2", "Rigger 3",
+  "Risk Assessment", "First Aid", "Fire Safety", "Safety Management",
+  "Electrical Safety", "Construction Safety", "Confined Space Training",
+  "Lifting & Rigging Safety", "Chemical Handling Safety"
 ];
 
-const DEFAULT_DESCRIPTION =
-  "This course is designed to enhance your skills and knowledge in occupational health & safety.";
+const DEFAULT_DESCRIPTION = "This course is designed to enhance your skills and knowledge in occupational health & safety.";
 
 export default function OhsCourseManage() {
   const token = useSelector((state) => state.auth.token);
   const API_BASE = process.env.REACT_APP_BASE_ADMIN_API;
-  const [role, setRole] = useState(null);
 
+  const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -70,7 +67,10 @@ export default function OhsCourseManage() {
           : DEFAULT_DESCRIPTION
       );
 
-      const nextCourses = Array.isArray(configRes.data?.courses) ? configRes.data.courses : DEFAULT_COURSES;
+      const nextCourses = Array.isArray(configRes.data?.courses) 
+        ? configRes.data.courses 
+        : DEFAULT_COURSES;
+
       setCourses(nextCourses.length ? nextCourses : DEFAULT_COURSES);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to load OHS config");
@@ -92,7 +92,7 @@ export default function OhsCourseManage() {
       );
       setDescription(nextDesc);
       setCourses(nextCourses);
-      toast.success("OHS courses updated");
+      toast.success("OHS courses updated successfully");
     } catch (err) {
       toast.error(err.response?.data?.message || "Update failed");
     } finally {
@@ -102,7 +102,6 @@ export default function OhsCourseManage() {
 
   useEffect(() => {
     fetchInitialData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const isTeacher = role === "teacher";
@@ -111,8 +110,7 @@ export default function OhsCourseManage() {
     const name = String(newCourseName || "").trim();
     if (!name) return;
 
-    const exists = courses.some((c) => String(c).toLowerCase() === name.toLowerCase());
-    if (exists) {
+    if (courses.some((c) => String(c).toLowerCase() === name.toLowerCase())) {
       toast.error("This course already exists");
       return;
     }
@@ -137,11 +135,7 @@ export default function OhsCourseManage() {
     const nextCourses = [...courses];
     nextCourses[editIndex] = nextName;
 
-    // Prevent duplicates after edit
-    const dup = nextCourses.some(
-      (c, i) => i !== editIndex && String(c).toLowerCase() === nextName.toLowerCase()
-    );
-    if (dup) {
+    if (nextCourses.some((c, i) => i !== editIndex && String(c).toLowerCase() === nextName.toLowerCase())) {
       toast.error("Another course with the same name already exists");
       return;
     }
@@ -149,7 +143,6 @@ export default function OhsCourseManage() {
     setShowEditModal(false);
     setEditIndex(null);
     setEditValue("");
-
     await persistConfig(description, nextCourses);
   };
 
@@ -160,7 +153,7 @@ export default function OhsCourseManage() {
 
   const confirmDelete = async () => {
     if (courses.length <= 1) {
-      toast.error("At least one course should exist");
+      toast.error("At least one course should remain");
       setShowDeleteModal(false);
       return;
     }
@@ -173,155 +166,176 @@ export default function OhsCourseManage() {
   return (
     <Container className="py-4">
       <Breadcrumb>
-        <Breadcrumb.Item>Dashboard</Breadcrumb.Item>
+        <Breadcrumb.Item href="/dashboard">Dashboard</Breadcrumb.Item>
         <Breadcrumb.Item active>OHS Courses Manage</Breadcrumb.Item>
       </Breadcrumb>
 
-      <h3 className="mb-4 fw-semibold name_heading">OHS Academy - Manage Courses</h3>
+      <h2 className="mb-4 fw-bold text-primary">OHS Academy - Manage Courses</h2>
 
       {loading ? (
-        <div className="text-center py-5">Loading...</div>
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status" />
+          <p className="mt-2">Loading courses...</p>
+        </div>
       ) : (
         <>
           {!isTeacher && (
-            <Alert variant="warning">
-              Only teacher can add/edit/delete OHS courses. You can view the current list.
+            <Alert variant="warning" className="mb-4">
+              <strong>Note:</strong> Only teachers can add, edit or delete courses. You can only view the list.
             </Alert>
           )}
 
-          <Row>
-          <Col md={5}>
-            <CardSectionTitle title="Add Course Name" />
-
-            <Form className="d-flex gap-2" onSubmit={(e) => e.preventDefault()}>
-              <Form.Control
-                placeholder="e.g. NEBOSH"
-                value={newCourseName}
-                onChange={(e) => setNewCourseName(e.target.value)}
-                disabled={!isTeacher || saving}
-              />
-              <Button variant="success" onClick={addCourse} disabled={!isTeacher || saving}>
-                Add
-              </Button>
-            </Form>
-          </Col>
-        </Row>
-
-          <Row className="g-3 mt-3">
-            <Col md={7}>
-              <Form.Group controlId="ohsDescription" className="mb-3">
-                <Form.Label>Single Description (shared for all courses)</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={4}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  disabled={!isTeacher || saving}
-                />
-              </Form.Group>
-
-              <Button
-                variant="primary"
-                onClick={() => persistConfig(description, courses)}
-                disabled={!isTeacher || saving}
-              >
-                {saving ? "Saving..." : "Save Description & Courses"}
-              </Button>
+          {/* Add New Course + Description Section */}
+          <Row className="g-4 mb-5">
+            {/* Add Course Card */}
+            <Col lg={5}>
+              <Card className="h-100 shadow-sm">
+                <Card.Body>
+                  <Card.Title className="d-flex align-items-center gap-2">
+                    <MdAdd size={24} /> Add New Course
+                  </Card.Title>
+                  <Form className="d-flex gap-2 mt-3" onSubmit={(e) => { e.preventDefault(); addCourse(); }}>
+                    <Form.Control
+                      placeholder="Enter course name (e.g. NEBOSH)"
+                      value={newCourseName}
+                      onChange={(e) => setNewCourseName(e.target.value)}
+                      disabled={!isTeacher || saving}
+                    />
+                    <Button 
+                      variant="success" 
+                      onClick={addCourse} 
+                      disabled={!isTeacher || saving || !newCourseName.trim()}
+                    >
+                      Add
+                    </Button>
+                  </Form>
+                </Card.Body>
+              </Card>
             </Col>
 
-           
+            {/* Description Card */}
+            <Col lg={7}>
+              <Card className="h-100 shadow-sm">
+                <Card.Body>
+                  <Card.Title>Course Description (Shared for all courses)</Card.Title>
+                  <Form.Group className="mt-3">
+                    <Form.Control
+                      as="textarea"
+                      rows={5}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      disabled={!isTeacher || saving}
+                      placeholder="Enter description..."
+                    />
+                  </Form.Group>
+
+                  <Button
+                    variant="primary"
+                    className="mt-3"
+                    onClick={() => persistConfig(description, courses)}
+                    disabled={!isTeacher || saving}
+                  >
+                    {saving ? "Saving Changes..." : "Save Description"}
+                  </Button>
+                </Card.Body>
+              </Card>
+            </Col>
           </Row>
-         
 
-          <hr className="my-4" />
-
-          <Row>
-            <Col>
-              <div style={{ display: "flex", gap: 12, justifyContent: "space-between", alignItems: "center" }}>
+          {/* Courses List Section */}
+          <Card className="shadow-sm">
+            <Card.Header className="bg-light">
+              <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <h5 className="mb-0">Course Names</h5>
-                  <small className="text-muted">{courses.length} items</small>
+                  <h5 className="mb-0">All Courses ({courses.length})</h5>
+                  <small className="text-muted">Click edit or delete icons to modify</small>
                 </div>
+                {isTeacher && (
+                  <small className="text-success">You have full access</small>
+                )}
               </div>
+            </Card.Header>
 
-              <Row className="mt-3 g-3">
+            <Card.Body>
+              <Row className="g-3">
                 {courses.map((name, idx) => (
-                  <Col key={`${name}-${idx}`} md={4}>
-                    <div className="border rounded px-3 py-3 h-100 d-flex flex-column justify-content-between">
-                      <div style={{ fontWeight: 600, wordBreak: "break-word" }}>{name}</div>
-                      <div className="d-flex gap-2 mt-3">
-                        <Button
-                          variant="outline-primary"
-                          size="sm"
-                          onClick={() => startEdit(idx)}
-                          disabled={!isTeacher || saving}
-                        >
-                          <MdEdit />
-                        </Button>
-                        <Button
-                          variant="outline-danger"
-                          size="sm"
-                          onClick={() => requestDelete(idx)}
-                          disabled={!isTeacher || saving}
-                        >
-                          <MdDelete />
-                        </Button>
-                      </div>
-                    </div>
+                  <Col key={`${name}-${idx}`} md={6} lg={4}>
+                    <Card className="h-100 border hover-shadow transition-all">
+                      <Card.Body className="d-flex flex-column">
+                        <Card.Title className="fs-6 mb-3" style={{ wordBreak: "break-word" }}>
+                          {name}
+                        </Card.Title>
+
+                        <div className="mt-auto d-flex gap-2">
+                          <Button
+                            variant="outline-primary"
+                            size="sm"
+                            onClick={() => startEdit(idx)}
+                            disabled={!isTeacher || saving}
+                            title="Edit Course"
+                          >
+                            <MdEdit /> Edit
+                          </Button>
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() => requestDelete(idx)}
+                            disabled={!isTeacher || saving}
+                            title="Delete Course"
+                          >
+                            <MdDelete /> Delete
+                          </Button>
+                        </div>
+                      </Card.Body>
+                    </Card>
                   </Col>
                 ))}
               </Row>
-            </Col>
-          </Row>
+            </Card.Body>
+          </Card>
         </>
       )}
 
       {/* Edit Modal */}
-      <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered backdrop="static" keyboard={false}>
-        <Modal.Header closeButton className="bg-warning text-black">
-          <Modal.Title>Edit Course</Modal.Title>
+      <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Course Name</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form.Control
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
-            disabled={!isTeacher || saving}
+            autoFocus
           />
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowEditModal(false)} disabled={saving}>
+          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={saveEdit} disabled={!isTeacher || saving}>
-            Save
+          <Button variant="primary" onClick={saveEdit}>
+            Save Changes
           </Button>
         </Modal.Footer>
       </Modal>
 
-      {/* Delete Modal */}
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered backdrop="static" keyboard={false}>
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
         <Modal.Header closeButton className="bg-danger text-white">
-          <Modal.Title>Delete Course</Modal.Title>
+          <Modal.Title>Confirm Delete</Modal.Title>
         </Modal.Header>
-        <Modal.Body>Are you sure you want to delete this course name?</Modal.Body>
+        <Modal.Body>
+          Are you sure you want to delete <strong>"{courses[deleteIndex]}"</strong>?<br />
+          This action cannot be undone.
+        </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)} disabled={saving}>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={confirmDelete} disabled={!isTeacher || saving}>
-            Delete
+          <Button variant="danger" onClick={confirmDelete}>
+            Yes, Delete
           </Button>
         </Modal.Footer>
       </Modal>
     </Container>
   );
 }
-
-function CardSectionTitle({ title }) {
-  return (
-    <div className="mb-2">
-      <h5 className="mb-0">{title}</h5>
-    </div>
-  );
-}
-

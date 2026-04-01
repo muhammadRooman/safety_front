@@ -2,10 +2,11 @@ import axios from "axios";
 import React, { useCallback, useEffect, useState } from "react";
 import { Card, Row, Col, Container } from "react-bootstrap";
 import { useSelector } from "react-redux";
+import { SiGooglemeet } from "react-icons/si";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FaFilm, FaRedo, FaChalkboardTeacher } from "react-icons/fa";
+import { FaFilm, FaRedo, FaChalkboardTeacher, FaVideo } from "react-icons/fa";
 import { HiUsers } from "react-icons/hi2";
 
 const Dashboard = () => {
@@ -103,6 +104,8 @@ const Dashboard = () => {
     }
   };
 
+  // fetch all course
+  
   return (
     <div className="w-100 dashboard-page">
       <Container className="py-4 py-md-5 px-2 px-sm-3">
@@ -118,7 +121,37 @@ const Dashboard = () => {
               </Card.Body>
             </Card>
           </Col>
-
+{user?.role === "student" && (
+  <>
+ <Col>
+    <Card
+      className="dashboard-card h-100"
+      onClick={() => navigate("/dashboard/student_live_class")}
+      style={{ cursor: "pointer" }}
+    >
+      <Card.Body className="text-center">
+        <FaVideo size={40} className="mb-2 dashboard-card-icon text-success" />
+        <Card.Title>{t("Join Live Class")}</Card.Title>
+        <Card.Text>{t("Click here to join your class session.")}</Card.Text>
+      </Card.Body>
+    </Card>
+  </Col>
+  <Col>
+    <Card
+      className="dashboard-card h-100"
+      onClick={() => navigate("/dashboard/google-meet")}
+      style={{ cursor: "pointer" }}
+    >
+      <Card.Body className="text-center">
+        <SiGooglemeet size={40} className="mb-2 dashboard-card-icon " />
+        <Card.Title>{t("Google Meet")}</Card.Title>
+        <Card.Text>{t("Click here to join your Live Google Meet Class")}</Card.Text>
+      </Card.Body>
+    </Card>
+  </Col>
+  </>
+ 
+)}
           {/* Enroll Teacher - Only for teacher */}
           {user?.role === "teacher" && (
             <>
@@ -148,6 +181,19 @@ const Dashboard = () => {
                     <Card.Title>{t("enroll_student")}</Card.Title>
                     <Card.Text>{t("enroll_student_desc")}</Card.Text>
                     <Card.Text>{studentsCount}</Card.Text>
+                  </Card.Body>
+                </Card>
+              </Col>
+              <Col>
+                <Card
+                  className="dashboard-card h-100"
+                  onClick={() => navigate("/dashboard/admin_live_class")}
+                  style={{ cursor: "pointer" }}
+                >
+                  <Card.Body className="text-center">
+                    <FaVideo size={40} className="mb-2 dashboard-card-icon text-success"/>
+                    <Card.Title>{t("Live Class")}</Card.Title>
+                    <Card.Text>{t("Admin takes live classes for students.")}</Card.Text>
                   </Card.Body>
                 </Card>
               </Col>

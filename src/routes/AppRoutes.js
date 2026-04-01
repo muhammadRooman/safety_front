@@ -12,6 +12,8 @@ import PublicRoute from "./PublicRoute";
 import Edit from "../pages/tracker/Edit";
 import OHSCourse from "../pages/OHSCourses/List";
 import StudentRegister from "../pages/EnrollStudent/StudentRegister";
+import StudentLiveClass from "../pages/LiveClass/StudentLiveClass";
+import AdminLiveClass from "../pages/LiveClass/AdminLiveClass";
 // import GoogleMeet from "../pages/GoogleMeet";
 
 const Signup = lazy(() => import("../pages/Signup"));
@@ -195,6 +197,22 @@ const AppRoutes = () => {
             element={
               <PrivateRoute>
                 <GoogleMeet />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="dashboard/admin_live_class"
+            element={
+              <TeacherRoute>
+                <AdminLiveClass />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="dashboard/student_live_class"
+            element={
+              <PrivateRoute>
+                <StudentLiveClass />
               </PrivateRoute>
             }
           />
