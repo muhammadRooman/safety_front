@@ -96,6 +96,48 @@ export default function AllJobs() {
       selector: (row) => row.companyName || "—",
     },
     {
+      name: "Number",
+      selector: (row) => row.contactNumber || "—",
+    },
+ {
+  name: "Last Date",
+  cell: (row) =>
+    row.deadline ? (
+      <span style={{ color: "red", fontWeight: "bold" }}>
+        {new Date(row.deadline).toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })}
+      </span>
+    ) : (
+      "—"
+    ),
+},
+{
+  name: "Deadline Status",
+  cell: (row) => {
+    if (!row.deadline) return "—";
+
+    const today = new Date();
+    const deadline = new Date(row.deadline);
+    const diffTime = deadline - today; // milliseconds difference
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // convert to days
+
+    if (diffDays < 0) {
+      return <span style={{ color: "red", fontWeight: "bold" }}>Expired</span>;
+    } else if (diffDays === 0) {
+      return <span style={{ color: "orange", fontWeight: "bold" }}>Today</span>;
+    } else {
+      return (
+        <span style={{ color: "green", fontWeight: "bold" }}>
+          {diffDays} day{diffDays > 1 ? "s" : ""} left
+        </span>
+      );
+    }
+  },
+},
+    {
       name: "Status",
       width: "110px",
       cell: (row) => (

@@ -159,7 +159,7 @@ export default function StudentLiveClass() {
         <Breadcrumb.Item href="/dashboard">Dashboard</Breadcrumb.Item>
         <Breadcrumb.Item active>Live Class</Breadcrumb.Item>
       </Breadcrumb>
-
+      <h3 className="fw-bold mb-1 mb-0 fw-semibold name_heading">Live Class</h3>
       <Card>
         <Card.Body>
           <div className="d-flex justify-content-between align-items-center mb-2">

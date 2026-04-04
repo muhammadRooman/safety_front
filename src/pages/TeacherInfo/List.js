@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
+  Breadcrumb,
   Button,
   Card,
   Col,
@@ -17,7 +19,7 @@ const backendOrigin = (process.env.REACT_APP_BASE_uploads || "http://localhost:8
 
 const TeacherInfoList = () => {
   const token = useSelector((state) => state.auth.token);
-
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [items, setItems] = useState([]);
@@ -153,8 +155,13 @@ const TeacherInfoList = () => {
 
   return (
     <Container className="py-4">
+    <Breadcrumb>
+    <Breadcrumb.Item onClick={() => navigate("/dashboard")}>Dashboard</Breadcrumb.Item>
+    <Breadcrumb.Item onClick={() => navigate("/dashboard/teacher-info")}>Teacher Info</Breadcrumb.Item>
+  </Breadcrumb>
+
+  <h3 className="fw-bold mb-1 mb-0 fw-semibold name_heading">Teacher Informative videos</h3>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4 className="mb-0 fw-semibold">Teacher Info</h4>
         {isAdmin && (
           <Button className="buttonColor" onClick={openCreate}>
             Add Teacher Info

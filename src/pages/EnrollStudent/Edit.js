@@ -60,6 +60,7 @@ export default function StudentEnrollList() {
     { value: "Urdu", label: "Urdu" },
     { value: "English", label: "English" },
     { value: "Arabic", label: "Arabic" },
+    { value: "Pashto", label: "Pashto" },
   ];
 
   // Provide Google Meet Link States

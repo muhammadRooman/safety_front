@@ -23,6 +23,12 @@ const DEFAULT_COURSES = [
 ];
 
 const DEFAULT_DESCRIPTION = "This course is designed to enhance your skills and knowledge in occupational health & safety.";
+const DEFAULT_CONTACT = {
+  name: "OHS Academy",
+  email: "muhammad.rooman5@gmail.com",
+  phone: "0333-0222006",
+  address: "House #3, Peshawar Saddar",
+};
 
 export default function OhsCourseManage() {
   const token = useSelector((state) => state.auth.token);
@@ -34,19 +40,22 @@ export default function OhsCourseManage() {
 
   const [description, setDescription] = useState(DEFAULT_DESCRIPTION);
   const [courses, setCourses] = useState(DEFAULT_COURSES);
+  const [contact, setContact] = useState(DEFAULT_CONTACT);
 
-  // Add course
   const [newCourseName, setNewCourseName] = useState("");
 
-  // Edit course
   const [showEditModal, setShowEditModal] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
   const [editValue, setEditValue] = useState("");
-
-  // Delete course
+const [search, setSearch] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
 
+
+  // Filtered Courses for Search
+  const filteredCourses = courses.filter((c) =>
+    c.toLowerCase().includes(search.toLowerCase().trim())
+  );
   const fetchInitialData = async () => {
     if (!token) return;
     setLoading(true);
@@ -66,6 +75,12 @@ export default function OhsCourseManage() {
           ? configRes.data.description
           : DEFAULT_DESCRIPTION
       );
+      setContact({
+        name: configRes.data?.name || DEFAULT_CONTACT.name,
+        email: configRes.data?.email || DEFAULT_CONTACT.email,
+        phone: configRes.data?.phone || DEFAULT_CONTACT.phone,
+        address: configRes.data?.address || DEFAULT_CONTACT.address,
+      });
 
       const nextCourses = Array.isArray(configRes.data?.courses) 
         ? configRes.data.courses 
@@ -77,21 +92,30 @@ export default function OhsCourseManage() {
       setRole(null);
       setDescription(DEFAULT_DESCRIPTION);
       setCourses(DEFAULT_COURSES);
+      setContact(DEFAULT_CONTACT);
     } finally {
       setLoading(false);
     }
   };
 
-  const persistConfig = async (nextDesc, nextCourses) => {
+  const persistConfig = async (nextDesc, nextCourses, nextContact = contact) => {
     setSaving(true);
     try {
       await axios.put(
         `${API_BASE}/admin/ohs-courses`,
-        { description: nextDesc, courses: nextCourses },
+        {
+          description: nextDesc,
+          courses: nextCourses,
+          name: nextContact.name,
+          email: nextContact.email,
+          phone: nextContact.phone,
+          address: nextContact.address,
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setDescription(nextDesc);
       setCourses(nextCourses);
+      setContact(nextContact);
       toast.success("OHS courses updated successfully");
     } catch (err) {
       toast.error(err.response?.data?.message || "Update failed");
@@ -164,13 +188,13 @@ export default function OhsCourseManage() {
   };
 
   return (
-    <Container className="py-4">
+    <Container>
       <Breadcrumb>
         <Breadcrumb.Item href="/dashboard">Dashboard</Breadcrumb.Item>
         <Breadcrumb.Item active>OHS Courses Manage</Breadcrumb.Item>
       </Breadcrumb>
 
-      <h2 className="mb-4 fw-bold text-primary">OHS Academy - Manage Courses</h2>
+      <h2 className="mb-4 mb-0 fw-semibold name_heading">OHS Academy - Manage Courses</h2>
 
       {loading ? (
         <div className="text-center py-5">
@@ -189,24 +213,49 @@ export default function OhsCourseManage() {
           <Row className="g-4 mb-5">
             {/* Add Course Card */}
             <Col lg={5}>
-              <Card className="h-100 shadow-sm">
-                <Card.Body>
+              <Card
+                className="h-100 shadow-sm"
+                style={{
+                  backgroundImage: "url('/newcourse.jpg')",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                }}
+              >
+                <Card.Body
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.85)",
+                    borderRadius: "8px",
+                  }}
+                >
                   <Card.Title className="d-flex align-items-center gap-2">
                     <MdAdd size={24} /> Add New Course
                   </Card.Title>
-                  <Form className="d-flex gap-2 mt-3" onSubmit={(e) => { e.preventDefault(); addCourse(); }}>
-                    <Form.Control
-                      placeholder="Enter course name (e.g. NEBOSH)"
-                      value={newCourseName}
-                      onChange={(e) => setNewCourseName(e.target.value)}
-                      disabled={!isTeacher || saving}
-                    />
-                    <Button 
-                      variant="success" 
-                      onClick={addCourse} 
+          
+                  <Form
+                    className="mt-3"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      addCourse();
+                    }}
+                  >
+                    <Form.Group>
+                      <Form.Label>Course Name</Form.Label>
+                      <Form.Control
+                        placeholder="Enter course name (e.g. NEBOSH)"
+                        value={newCourseName}
+                        onChange={(e) => setNewCourseName(e.target.value)}
+                        disabled={!isTeacher || saving}
+                      />
+                    </Form.Group>
+          
+                    <Button
+                      variant="success"
+                      className="mt-3 w-100"
+                      onClick={addCourse}
                       disabled={!isTeacher || saving || !newCourseName.trim()}
                     >
-                      Add
+                      Add Course
                     </Button>
                   </Form>
                 </Card.Body>
@@ -215,10 +264,78 @@ export default function OhsCourseManage() {
 
             {/* Description Card */}
             <Col lg={7}>
-              <Card className="h-100 shadow-sm">
-                <Card.Body>
-                  <Card.Title>Course Description (Shared for all courses)</Card.Title>
+              <Card
+                className="h-100 shadow-sm"
+                style={{
+                  background: "url('/more1.jpg')",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                }}
+              >
+                <Card.Body
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.9)",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <Card.Title>Course Information (Shared for all courses)</Card.Title>
+
+                  <Row className="mt-3">
+                    <Col md={6}>
+                      <Form.Label className="mb-1">Name</Form.Label>
+                      <Form.Control
+                        value={contact.name}
+                        onChange={(e) =>
+                          setContact((prev) => ({ ...prev, name: e.target.value }))
+                        }
+                        disabled={!isTeacher || saving}
+                        placeholder="Enter name..."
+                      />
+                    </Col>
+
+                    <Col md={6}>
+                      <Form.Label className="mb-1">Email</Form.Label>
+                      <Form.Control
+                        type="email"
+                        value={contact.email}
+                        onChange={(e) =>
+                          setContact((prev) => ({ ...prev, email: e.target.value }))
+                        }
+                        disabled={!isTeacher || saving}
+                        placeholder="Enter email..."
+                      />
+                    </Col>
+                  </Row>
+
+                  <Row className="mt-3">
+                    <Col md={6}>
+                      <Form.Label className="mb-1">Phone</Form.Label>
+                      <Form.Control
+                        value={contact.phone}
+                        onChange={(e) =>
+                          setContact((prev) => ({ ...prev, phone: e.target.value }))
+                        }
+                        disabled={!isTeacher || saving}
+                        placeholder="Enter phone..."
+                      />
+                    </Col>
+
+                    <Col md={6}>
+                      <Form.Label className="mb-1">Address</Form.Label>
+                      <Form.Control
+                        value={contact.address}
+                        onChange={(e) =>
+                          setContact((prev) => ({ ...prev, address: e.target.value }))
+                        }
+                        disabled={!isTeacher || saving}
+                        placeholder="Enter address..."
+                      />
+                    </Col>
+                  </Row>
+
                   <Form.Group className="mt-3">
+                    <Form.Label className="mb-1">Description</Form.Label>
                     <Form.Control
                       as="textarea"
                       rows={5}
@@ -232,7 +349,7 @@ export default function OhsCourseManage() {
                   <Button
                     variant="primary"
                     className="mt-3"
-                    onClick={() => persistConfig(description, courses)}
+                    onClick={() => persistConfig(description, courses, contact)}
                     disabled={!isTeacher || saving}
                   >
                     {saving ? "Saving Changes..." : "Save Description"}
@@ -244,55 +361,96 @@ export default function OhsCourseManage() {
 
           {/* Courses List Section */}
           <Card className="shadow-sm">
-            <Card.Header className="bg-light">
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <h5 className="mb-0">All Courses ({courses.length})</h5>
-                  <small className="text-muted">Click edit or delete icons to modify</small>
-                </div>
-                {isTeacher && (
-                  <small className="text-success">You have full access</small>
-                )}
+          <Card.Header className="bg-light py-3">
+            <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
+              
+              {/* Left Side - Title */}
+              <div>
+                <h5 className="mb-0 fw-semibold">All Courses ({filteredCourses.length})</h5>
+             
               </div>
-            </Card.Header>
-
-            <Card.Body>
-              <Row className="g-3">
-                {courses.map((name, idx) => (
-                  <Col key={`${name}-${idx}`} md={6} lg={4}>
-                    <Card className="h-100 border hover-shadow transition-all">
-                      <Card.Body className="d-flex flex-column">
-                        <Card.Title className="fs-6 mb-3" style={{ wordBreak: "break-word" }}>
-                          {name}
-                        </Card.Title>
-
-                        <div className="mt-auto d-flex gap-2">
-                          <Button
-                            variant="outline-primary"
-                            size="sm"
-                            onClick={() => startEdit(idx)}
-                            disabled={!isTeacher || saving}
-                            title="Edit Course"
-                          >
-                            <MdEdit /> Edit
-                          </Button>
-                          <Button
-                            variant="outline-danger"
-                            size="sm"
-                            onClick={() => requestDelete(idx)}
-                            disabled={!isTeacher || saving}
-                            title="Delete Course"
-                          >
-                            <MdDelete /> Delete
-                          </Button>
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </Card.Body>
-          </Card>
+        
+              {/* Right Side - Filter Section (Responsive) */}
+            {/* Right Side - Filter Section */}
+            <div className="d-flex flex-column flex-lg-row align-items-center justify-content-end gap-2 w-100">
+            <span className="text-muted fw-medium text-nowrap">Filter by name:</span>
+            
+            <Form.Control
+              type="text"
+              placeholder="Search course..."
+              value={search}
+            onChange={(e) => setSearch(e.target.value)}
+              style={{ width: "180px" }} 
+            />
+            
+            {isTeacher && (
+              <small className="text-success text-nowrap ms-2">You have full access</small>
+            )}
+          </div>
+            </div>
+          </Card.Header>
+        
+          <Card.Body style={{ maxHeight: "500px", overflowY: "auto" }}>
+            <Row className="g-3">
+              {filteredCourses.length > 0 ? (
+                filteredCourses.map((courseName, idx) => {
+                  const originalIndex = courses.findIndex(c => c === courseName);
+                  
+                  return (
+                    <Col key={`${courseName}-${idx}`} md={6} lg={4}>
+                      <Card className="h-100 border hover-shadow transition-all position-relative">
+                        <span style={{
+                          position: "absolute",
+                          top: "10px",
+                          right: "15px",
+                          fontSize: "70px",
+                          fontWeight: "bold",
+                          color: "rgba(255, 193, 7, 0.2)",
+                          pointerEvents: "none",
+                          zIndex: 0,
+                        }}>
+                          {originalIndex + 1}
+                        </span>
+        
+                        <Card.Body className="d-flex flex-column position-relative" style={{ zIndex: 1 }}>
+                          <Card.Title className="fs-6 mb-3" style={{ wordBreak: "break-word" }}>
+                            {courseName}
+                          </Card.Title>
+        
+                          <div className="mt-auto d-flex gap-2">
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              onClick={() => startEdit(originalIndex)}
+                              disabled={!isTeacher || saving}
+                            >
+                              <MdEdit /> Edit
+                            </Button>
+        
+                            <Button
+                              variant="outline-danger"
+                              size="sm"
+                              onClick={() => requestDelete(originalIndex)}
+                              disabled={!isTeacher || saving}
+                            >
+                              <MdDelete /> Delete
+                            </Button>
+                          </div>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  );
+                })
+              ) : (
+                <Col xs={12}>
+                  <p className="text-center text-muted py-5">
+                    No courses found matching "<strong>{search}</strong>"
+                  </p>
+                </Col>
+              )}
+            </Row>
+          </Card.Body>
+        </Card>
         </>
       )}
 

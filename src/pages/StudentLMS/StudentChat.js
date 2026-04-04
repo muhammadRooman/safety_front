@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { useSelector } from "react-redux";
-import { Container, Row, Col, Form, Button, Modal } from "react-bootstrap";
+import { Container, Row, Col, Form, Button, Modal, Breadcrumb } from "react-bootstrap";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "http://localhost:8082";
+const URL_REGEX = /(https?:\/\/[^\s]+)/g;
 
 const StudentChat = () => {
   const studentId = useSelector((state) => state.auth.id);
@@ -15,9 +17,24 @@ const StudentChat = () => {
   const [input, setInput] = useState("");
   const [hasAlert, setHasAlert] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
-
+  const navigate = useNavigate();
   const messagesEndRef = useRef(null);
   const markedSeenRef = useRef(new Set());
+
+  const renderMessageWithLinks = (text) => {
+    const raw = String(text || "");
+    const parts = raw.split(URL_REGEX);
+    return parts.map((part, idx) => {
+      if (/^https?:\/\//i.test(part)) {
+        return (
+          <a key={`${part}-${idx}`} href={part} target="_blank" rel="noopener noreferrer">
+            {part}
+          </a>
+        );
+      }
+      return <React.Fragment key={`${part}-${idx}`}>{part}</React.Fragment>;
+    });
+  };
 
   useEffect(() => {
     markedSeenRef.current = new Set();
@@ -28,6 +45,7 @@ const StudentChat = () => {
     if (!studentId) return;
     try {
       const stored = localStorage.getItem(`studentMessages_${studentId}`);
+      console.log("sss")
       if (stored) {
         const parsed = JSON.parse(stored);
         setMessages(Array.isArray(parsed) && parsed.length > 100 
@@ -196,10 +214,16 @@ const StudentChat = () => {
 
   return (
     <Container className="py-4">
+    <Breadcrumb>
+    <Breadcrumb.Item onClick={() => navigate("/dashboard")}>Dashboard</Breadcrumb.Item>
+    <Breadcrumb.Item onClick={() => navigate("/dashboard/student-chat")}>Messages</Breadcrumb.Item>
+  </Breadcrumb>
+
+  <h3 className="fw-bold mb-1 mb-0 fw-semibold name_heading">Chat with Admin</h3>
       <Row className="justify-content-center">
         <Col md={8}>
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <h3 className="mb-0 fw-semibold name_heading">Chat with Admin</h3>
+            <h3 className="mb-0 fw-semibold name_heading">Sir Farooq (CEO)</h3>
             <Button
               variant="outline-danger"
               size="sm"
@@ -261,7 +285,7 @@ const StudentChat = () => {
                     }}
                   >
                     <div style={{ fontSize: "15px", wordBreak: "break-word" }}>
-                      {m.message}
+                      {renderMessageWithLinks(m.message)}
                     </div>
                     <div style={{ fontSize: "11px", textAlign: "right", marginTop: "4px", opacity: 0.75 }}>
                       {new Date(m.createdAt).toLocaleTimeString([], { 

@@ -67,7 +67,7 @@ const GoogleMeet = () => {
         </Breadcrumb.Item>
         <Breadcrumb.Item active>Google Meet</Breadcrumb.Item>
       </Breadcrumb>
-
+      <h3 className="fw-bold mb-1 mb-0 fw-semibold name_heading">Google Meet</h3>
       <div className="d-flex justify-content-center w-100 px-1">
         <Card
           className="w-100"

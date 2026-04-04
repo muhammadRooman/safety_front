@@ -34,6 +34,7 @@ const VIDEO_LANGUAGES = [
   { value: "Urdu", label: "Urdu" },
   { value: "English", label: "English" },
   { value: "Arabic", label: "Arabic" },
+  { value: "Pashto", label: "Pashto" },
 ];
 
 export default function CourseVideoList() {

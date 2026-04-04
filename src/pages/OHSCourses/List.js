@@ -34,9 +34,16 @@ const List = () => {
 
   const DEFAULT_DESCRIPTION =
     "This course is designed to enhance your skills and knowledge in occupational health & safety.";
+  const DEFAULT_CONTACT = {
+    name: "Farooq Khan (CEO)",
+    email: "muhammadrooman5@gmail.com",
+    phone: "0333-0222006",
+    address: "House #3, Peshawar Saddar",
+  };
 
   const [courses, setCourses] = useState(DEFAULT_COURSES);
   const [description, setDescription] = useState(DEFAULT_DESCRIPTION);
+  const [contact, setContact] = useState(DEFAULT_CONTACT);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -56,10 +63,17 @@ const List = () => {
 
         setCourses(nextCourses.length ? nextCourses : DEFAULT_COURSES);
         setDescription(nextDescription);
+        setContact({
+          name: res.data?.name || DEFAULT_CONTACT.name,
+          email: res.data?.email || DEFAULT_CONTACT.email,
+          phone: res.data?.phone || DEFAULT_CONTACT.phone,
+          address: res.data?.address || DEFAULT_CONTACT.address,
+        });
       } catch (err) {
         toast.error(err.response?.data?.message || "Failed to load OHS courses");
         setCourses(DEFAULT_COURSES);
         setDescription(DEFAULT_DESCRIPTION);
+        setContact(DEFAULT_CONTACT);
       } finally {
         setLoading(false);
       }
@@ -146,7 +160,7 @@ const List = () => {
               marginBottom: "5px",
             }}
           >
-            <strong>Phone:</strong> 0333-0222006
+            <strong>Name:</strong> {contact.name}
           </div>
           <div
             style={{
@@ -157,7 +171,7 @@ const List = () => {
               marginBottom: "5px",
             }}
           >
-            <strong>Email:</strong> muhammad.rooman5@gmail.com
+            <strong>Email:</strong> {contact.email}
           </div>
           <div
             style={{
@@ -168,7 +182,18 @@ const List = () => {
               marginBottom: "5px",
             }}
           >
-            <strong>Location:</strong> House #3, Peshawar Saddar
+            <strong>Phone:</strong> {contact.phone}
+          </div>
+          <div
+            style={{
+              backgroundColor: " #fff3cd",
+              color: "black",
+              padding: "8px",
+              borderRadius: "4px",
+              marginBottom: "5px",
+            }}
+          >
+            <strong>Address:</strong> {contact.address}
           </div>
           <hr />
           <p className="text-muted">

@@ -40,8 +40,33 @@ const Sidebar = () => {
 
   const sidebarRef = useRef(null);
   const hamburgerBtnRef = useRef(null);
+  const locationPathRef = useRef(location.pathname);
+
+  useEffect(() => {
+    locationPathRef.current = location.pathname;
+  }, [location.pathname]);
 
   const isActive = (path) => location.pathname === path;
+
+  const recomputeAdminUnreadTotal = () => {
+    try {
+      const stored = localStorage.getItem("adminMessagesUnread");
+      const obj = stored ? JSON.parse(stored) : {};
+      const total = Object.values(obj).reduce((sum, val) => sum + (Number(val) || 0), 0);
+      setAdminUnreadTotal(total);
+    } catch {
+      setAdminUnreadTotal(0);
+    }
+  };
+
+  const syncStudentAlertFromStorage = () => {
+    if (!studentId) {
+      setStudentHasAlert(false);
+      return;
+    }
+    const hasStoredAlert = localStorage.getItem(`studentMessagesAlert_${studentId}`) === "true";
+    setStudentHasAlert(hasStoredAlert);
+  };
 
   // Fetch user
   useEffect(() => {
@@ -58,11 +83,10 @@ const Sidebar = () => {
     if (token) fetchUser();
   }, [token, t]);
   useEffect(() => {
-    if (location.pathname === "/dashboard/messages") {
-      localStorage.removeItem("adminMessagesUnread");
-      setAdminUnreadTotal(0);
-    }
-  
+    // Keep badge count in sync with unread cache (do not clear it here).
+    recomputeAdminUnreadTotal();
+    syncStudentAlertFromStorage();
+
     if (location.pathname === "/dashboard/student-chat" && studentId) {
       localStorage.removeItem(`studentMessagesAlert_${studentId}`);
       setStudentHasAlert(false);
@@ -103,6 +127,7 @@ const Sidebar = () => {
             `studentMessagesAlert_${studentId}`,
             "true"
           );
+          setStudentHasAlert(true);
         } catch (e) {
           console.error("Failed to handle receive-message for student in sidebar", e);
         }
@@ -112,6 +137,7 @@ const Sidebar = () => {
     // When student sends message -> admin gets alert
     s.on("admin-alert", (alert) => {
       if (!alert || !alert.from) return;
+      if (locationPathRef.current === "/dashboard/messages") return;
       try {
         // Also store latest message into adminMessages cache so it appears when opening Messages page
         const adminStored = localStorage.getItem("adminMessages");
@@ -134,10 +160,8 @@ const Sidebar = () => {
         obj[fromId] = (obj[fromId] || 0) + 1;
         localStorage.setItem("adminMessagesUnread", JSON.stringify(obj));
 
-        const total = Object.values(obj).reduce(
-          (sum, val) => sum + (Number(val) || 0),
-          0
-        );
+        const total = Object.values(obj).reduce((sum, val) => sum + (Number(val) || 0), 0);
+        setAdminUnreadTotal(total);
       } catch (e) {
         console.error("Failed to handle admin-alert in sidebar", e);
       }
@@ -164,6 +188,7 @@ const Sidebar = () => {
           `studentMessagesAlert_${studentId}`,
           "true"
         );
+        setStudentHasAlert(true);
       } catch (e) {
         console.error("Failed to handle student-alert in sidebar", e);
       }
