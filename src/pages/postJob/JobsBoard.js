@@ -68,13 +68,22 @@ export default function JobsBoard() {
         <Breadcrumb.Item active>Job Opportunities</Breadcrumb.Item>
       </Breadcrumb>
 
-      <div className="d-flex align-items-center justify-content-between mb-4">
-        <div className="d-flex align-items-center gap-3">
-          <h3 className="fw-bold mb-1 mb-0 fw-semibold name_heading">Job Opportunities</h3>
-          <FcAdvertising size={36} />
-        </div>
-        <p className="text-muted mb-0 fs-5">{jobs.length} Open Positions</p>
-      </div>
+     <div className="mb-4">
+  <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
+    {/* Left Side */}
+    <div className="d-flex align-items-center gap-3">
+      <h3 className="fw-bold mb-0 name_heading">Job Opportunities</h3>
+      <FcAdvertising size={36} />
+    </div>
+
+    {/* Right Side */}
+    <div className="text-sm-end">
+      <p className="text-muted mb-0 fs-5 fw-medium">
+        {jobs.length} Open Positions
+      </p>
+    </div>
+  </div>
+</div>
 
       {loading ? (
         <div className="text-center py-5">

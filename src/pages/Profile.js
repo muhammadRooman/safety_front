@@ -65,7 +65,7 @@ const Profile = () => {
       const payload = { name: data.name, email: data.email, phone: data.phone };
       if (data.password) payload.password = data.password;
 
-      await TokenApi.patch(`${ENV.appBaseUrl}/auth/updateUser/${id}`, payload, {
+      await axios.put(`${ENV.appBaseUrl}/auth/updateUser/${id}`, payload, {
         headers: {
           Authorization: token ? `Bearer ${token}` : "",
           "Content-Type": "application/json",

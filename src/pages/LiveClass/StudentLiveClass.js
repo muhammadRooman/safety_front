@@ -1,14 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import {
-  Container,
-  Breadcrumb,
-  Card,
-  Spinner,
-  Button,
-  Badge,
-} from "react-bootstrap";
+import { Container, Breadcrumb, Card, Spinner, Button, Badge, Alert } from "react-bootstrap";
 
 const JITSI_DOMAIN = "meet.jit.si";
 
@@ -26,7 +19,7 @@ function useJitsi(roomName, displayName) {
         script.src = "https://meet.jit.si/external_api.js";
         script.async = true;
         script.onload = () => resolve();
-        script.onerror = () => reject(new Error("Failed to load Jitsi script"));
+        script.onerror = () => reject(new Error("Failed to load Jitsi"));
         document.body.appendChild(script);
       });
 
@@ -35,10 +28,8 @@ function useJitsi(roomName, displayName) {
     loadScript()
       .then(() => {
         if (!isMounted || !containerRef.current) return;
-        if (apiRef.current) {
-          apiRef.current.dispose();
-          apiRef.current = null;
-        }
+
+        if (apiRef.current) apiRef.current.dispose();
 
         const options = {
           roomName,
@@ -46,8 +37,9 @@ function useJitsi(roomName, displayName) {
           width: "100%",
           height: "100%",
           configOverwrite: {
-            // Auto-join so student remote tiles can appear immediately.
             prejoinPageEnabled: false,
+            startWithAudioMuted: false,
+            startWithVideoMuted: false,
           },
           userInfo: {
             displayName: displayName || "Student",
@@ -56,9 +48,7 @@ function useJitsi(roomName, displayName) {
 
         apiRef.current = new window.JitsiMeetExternalAPI(JITSI_DOMAIN, options);
       })
-      .catch((err) => {
-        console.error("Failed to init Jitsi", err);
-      });
+      .catch((err) => console.error("Jitsi init failed", err));
 
     return () => {
       isMounted = false;
@@ -77,209 +67,190 @@ export default function StudentLiveClass() {
   const studentName = useSelector((state) => state.auth.name);
 
   const [activeClass, setActiveClass] = useState(null);
-  const [classes, setClasses] = useState([]);
+  const [allClasses, setAllClasses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [joiningClass, setJoiningClass] = useState(null);
+  const [error, setError] = useState("");
 
-  const jitsiRef = useJitsi((joiningClass || activeClass)?.roomName || null, studentName);
-  const effectiveClass = joiningClass || activeClass;
+  const jitsiRef = useJitsi(activeClass?.roomName, studentName);
 
-  const fetchAssignedClasses = async () => {
+  // Fetch Active Live Class (Priority)
+  const fetchActiveClass = async () => {
     if (!token) return;
-    try {
-      const res = await axios.get(
-        `${process.env.REACT_APP_BASE_ADMIN_API}/admin/live-class/student`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setClasses(Array.isArray(res.data?.data) ? res.data.data : []);
-    } catch (err) {
-      console.error("Failed to fetch assigned classes", err);
-      setClasses([]);
-    }
-  };
 
-  const fetchActive = async () => {
-    if (!token) return;
     try {
       const res = await axios.get(
         `${process.env.REACT_APP_BASE_ADMIN_API}/admin/live-class/student/active`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      const nextActive = res.data?.data || null;
-      setActiveClass(nextActive);
-      if (nextActive) {
-        setJoiningClass(nextActive);
+
+      if (res.data?.success && res.data.data) {
+        setActiveClass(res.data.data);
+        setError("");
+      } else {
+        setActiveClass(null);
       }
     } catch (err) {
-      if (err?.response?.status === 404) {
+      if (err.response?.status === 404) {
         setActiveClass(null);
-        setJoiningClass(null);
+        setError("");
       } else {
-        console.error("Failed to fetch active live class", err);
+        console.error("Active class error:", err);
+        setError("Failed to check active class");
       }
-    } finally {
-      setLoading(false);
     }
   };
 
-  const fetchAll = async () => {
+  // Fetch All Upcoming/Assigned Classes
+  const fetchAllClasses = async () => {
+    if (!token) return;
+
+    try {
+      const res = await axios.get(
+        `${process.env.REACT_APP_BASE_ADMIN_API}/admin/live-class/student`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setAllClasses(Array.isArray(res.data?.data) ? res.data.data : []);
+    } catch (err) {
+      console.error("Failed to fetch classes:", err);
+      setAllClasses([]);
+    }
+  };
+
+  const refreshAll = async () => {
     setLoading(true);
-    await Promise.all([fetchAssignedClasses(), fetchActive()]);
+    await Promise.all([fetchActiveClass(), fetchAllClasses()]);
     setLoading(false);
   };
 
+  // Auto refresh every 8 seconds
   useEffect(() => {
     if (!token) return;
-    fetchAll();
-    const id = setInterval(() => {
-      fetchAssignedClasses();
-      fetchActive();
-    }, 10000);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    refreshAll();
+    const interval = setInterval(refreshAll, 8000); // 8 seconds is good balance
+
+    return () => clearInterval(interval);
   }, [token]);
 
   const formatTime = (time) => {
-  const [hour, minute] = time.split(":");
-  let h = parseInt(hour);
-  const ampm = h >= 12 ? "PM" : "AM";
+    if (!time) return "--:--";
+    const date = new Date(time);
+    let h = date.getHours();
+    const m = date.getMinutes().toString().padStart(2, "0");
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12 || 12;
+    return `${h}:${m} ${ampm}`;
+  };
 
-  h = h % 12;
-  h = h === 0 ? 12 : h; // 0 ko 12 bana do
+  const isLiveNow = (cls) => cls.status === "live";
 
-  return `${h}:${minute} ${ampm}`;
-};
   return (
     <Container className="py-4">
       <Breadcrumb>
         <Breadcrumb.Item href="/dashboard">Dashboard</Breadcrumb.Item>
         <Breadcrumb.Item active>Live Class</Breadcrumb.Item>
       </Breadcrumb>
-      <h3 className="fw-bold mb-1 mb-0 fw-semibold name_heading">Live Class</h3>
-      <Card>
+
+      <h3 className="fw-bold mb-4">Live Class</h3>
+
+      <Card className="shadow-sm">
         <Card.Body>
-          <div className="d-flex justify-content-between align-items-center mb-2">
-            <Card.Title className="mb-0">Live Class (Jitsi)</Card.Title>
-            <Button variant="outline-secondary" size="sm" onClick={fetchAll} disabled={loading}>
-              Refresh
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <Card.Title className="mb-0">Live Session</Card.Title>
+            <Button variant="outline-primary" size="sm" onClick={refreshAll} disabled={loading}>
+              {loading ? "Checking..." : "Refresh"}
             </Button>
           </div>
 
-          {loading ? (
-            <div className="text-center py-4">
+          {loading && !activeClass ? (
+            <div className="text-center py-5">
               <Spinner animation="border" />
-              <p className="mt-2 mb-0 text-muted">
-                Checking for active live class…
-              </p>
+              <p className="mt-3 text-muted">Checking for live class...</p>
             </div>
-          ) : !effectiveClass ? (
-            <div className="text-center py-4">
-              <p className="mb-1 fw-semibold">
-                No live class is active at the moment.
-              </p>
-              <p className="mb-0 text-muted">
-                Please wait. Your teacher will start the class here.
-              </p>
-              {classes.length > 0 && (
-              <div className="mt-3">
-  <p className="mb-3 fw-semibold">Assigned Classes:</p>
-
-  {classes.map((cls) => (
-    <div
-      key={cls._id}
-      className="d-flex justify-content-between align-items-center mb-3 p-3 shadow-sm"
-      style={{
-        borderRadius: "12px",
-        background: "#fff",
-        border: "1px solid #eee",
-      }}
-    >
-      {/* LEFT SIDE */}
-      <div className="d-flex flex-column gap-2">
-
-        {/* Title */}
-        <div className="d-flex align-items-center gap-2">
-          <span className="fw-semibold text-muted">Course:</span>
-          <Badge
-            bg="success"
-            className="px-3 py-2 fw-semibold text-truncate"
-            style={{ maxWidth: "180px", borderRadius: "20px" }}
-            title={cls.title}
-          >
-            {cls.title}
-          </Badge>
-        </div>
-
-        {/* Time */}
-        <div className="d-flex align-items-center gap-2">
-          <span className="fw-semibold text-muted">Time:</span>
-          <Badge bg="light" text="dark" className="px-3 py-2">
-            {formatTime(cls.startTime)} - {formatTime(cls.endTime)}
-          </Badge>
-        </div>
-
-        {/* Status */}
-        <div className="d-flex align-items-center gap-2">
-          <span className="fw-semibold text-muted">Status:</span>
-          <Badge
-            bg={
-              cls.status === "live"
-                ? "success"
-                : cls.status === "scheduled"
-                ? "warning"
-                : cls.status === "ended"
-                ? "secondary"
-                : "dark"
-            }
-            className="px-3 py-2 text-capitalize"
-          >
-            {cls.status}
-          </Badge>
-        </div>
-      </div>
-
-      {/* RIGHT SIDE BUTTON */}
-      <Button
-        size="sm"
-        variant="primary"
-        className="px-3"
-        onClick={() => setJoiningClass(cls)}
-        disabled={cls.status !== "live"} // only join if live
-      >
-        {cls.status === "live" ? "Join Now" : "Not Live"}
-      </Button>
-    </div>
-  ))}
-</div>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <div className="fw-semibold">
-                  Joined: {effectiveClass?.title || "Live Class"}
+          ) : activeClass ? (
+            // ==================== LIVE CLASS UI ====================
+            <div>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                  <h5 className="mb-1">{activeClass.title}</h5>
+                  <Badge bg="success" className="px-3 py-2 fs-6">
+                    LIVE NOW
+                  </Badge>
                 </div>
-                <Button
+                <Button 
+                  variant="danger" 
                   size="sm"
-                  variant="outline-secondary"
-                  onClick={() => setJoiningClass(null)}
+                  onClick={() => setActiveClass(null)}
                 >
-                  Leave
+                  Leave Class
                 </Button>
               </div>
-              <div
-                ref={jitsiRef}
-                style={{ width: "100%", height: 450, borderRadius: 8 }}
+
+              <div 
+                ref={jitsiRef} 
+                style={{ 
+                  width: "100%", 
+                  height: "550px", 
+                  borderRadius: "10px",
+                  border: "1px solid #ddd"
+                }} 
               />
-            </>
+            </div>
+          ) : (
+            // ==================== NO LIVE CLASS ====================
+            <div className="text-center py-5">
+              <Alert variant="info">
+                <p className="mb-1 fw-semibold">No active live class right now.</p>
+                <p className="mb-0">Your teacher will start the session shortly.</p>
+              </Alert>
+
+              {allClasses.length > 0 && (
+                <>
+                  <h6 className="mt-4 mb-3 text-start">Your Upcoming Classes:</h6>
+                  {allClasses.map((cls) => (
+                    <Card key={cls._id} className="mb-3">
+                      <Card.Body>
+                        <div className="d-flex justify-content-between align-items-start">
+                          <div className="flex-grow-1">
+                            <h6 className="mb-2">{cls.title}</h6>
+                            <div className="d-flex gap-3 text-muted small">
+                              <div>
+                                <strong>Time:</strong> {formatTime(cls.startTime)} - {formatTime(cls.endTime)}
+                              </div>
+                              <div>
+                                <Badge 
+                                  bg={isLiveNow(cls) ? "success" : "warning"}
+                                  className="text-capitalize"
+                                >
+                                  {cls.status}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+
+                          {isLiveNow(cls) && (
+                            <Button 
+                              variant="success"
+                              onClick={() => setActiveClass(cls)}
+                            >
+                              Join Live
+                            </Button>
+                          )}
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  ))}
+                </>
+              )}
+
+              {allClasses.length === 0 && (
+                <p className="text-muted mt-3">No classes assigned yet.</p>
+              )}
+            </div>
           )}
         </Card.Body>
       </Card>
     </Container>
   );
 }
-
