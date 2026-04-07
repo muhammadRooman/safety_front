@@ -477,7 +477,7 @@ className="d-flex gap-2 justify-content-end flex-wrap flex-md-nowrap"
             columns={columns}
             data={filteredItems}
             pagination
-            onRowClicked={(row) => navigate(`/dashboard/messages`)}
+            // onRowClicked={(row) => navigate(`/dashboard/messages`)}
             highlightOnHover={false}
             responsive
           />
