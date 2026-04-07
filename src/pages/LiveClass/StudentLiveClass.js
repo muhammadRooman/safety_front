@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import { Container, Breadcrumb, Card, Spinner, Button, Badge, Alert } from "react-bootstrap";
+import { Container, Breadcrumb, Card, Spinner, Button, Badge } from "react-bootstrap";
 
 const JITSI_DOMAIN = "meet.jit.si";
 
@@ -65,12 +65,11 @@ export default function StudentLiveClass() {
   const token = useSelector((state) => state.auth.token);
   const studentName = useSelector((state) => state.auth.name);
 
-  const [activeClass, setActiveClass] = useState(null);
   const [allClasses, setAllClasses] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
   const [joinedClass, setJoinedClass] = useState(null);
+
   const jitsiRef = useJitsi(joinedClass?.roomName, studentName);
 
   const formatTime = (time) => {
@@ -83,22 +82,15 @@ export default function StudentLiveClass() {
     return `${h}:${m} ${ampm}`;
   };
 
-  const fetchActiveClass = async () => {
-    try {
-      const res = await axios.get(
-        `${process.env.REACT_APP_BASE_ADMIN_API}/admin/live-class/student/active`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (res.data?.success && res.data.data) {
-        setActiveClass(res.data.data);
-      } else {
-        setActiveClass(null);
-      }
-    } catch (err) {
-      if (err.response?.status !== 404) console.error(err);
-      setActiveClass(null);
-    }
+  const formatDate = (time) => {
+    if (!time) return "--/--/----";
+    const date = new Date(time);
+    return date.toLocaleDateString(undefined, { 
+      weekday: "short", 
+      day: "numeric", 
+      month: "short", 
+      year: "numeric" 
+    });
   };
 
   const fetchAllClasses = async () => {
@@ -116,7 +108,7 @@ export default function StudentLiveClass() {
 
   const silentRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchActiveClass(), fetchAllClasses()]);
+    await fetchAllClasses();
     setRefreshing(false);
   };
 
@@ -124,7 +116,7 @@ export default function StudentLiveClass() {
     if (!token) return;
 
     const initialFetch = async () => {
-      await Promise.all([fetchActiveClass(), fetchAllClasses()]);
+      await fetchAllClasses();
       setInitialLoading(false);
     };
 
@@ -134,8 +126,12 @@ export default function StudentLiveClass() {
     return () => clearInterval(interval);
   }, [token]);
 
-  // Agar class live hai to loader na dikhao
-  const showLoader = initialLoading && (!activeClass || activeClass.status !== "live");
+  const showLoader = initialLoading;
+
+  const isClassPast = (cls) => {
+    const now = new Date();
+    return new Date(cls.endTime) < now;
+  };
 
   return (
     <Container className="py-4">
@@ -145,7 +141,7 @@ export default function StudentLiveClass() {
       </Breadcrumb>
 
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3 className="fw-bold mb-0">Live Class</h3>
+        <h3 className="fw-bold mb-0 fw-semibold name_heading">Live Class</h3>
         <Button
           variant="outline-primary"
           size="sm"
@@ -156,81 +152,18 @@ export default function StudentLiveClass() {
         </Button>
       </div>
 
-      <Card className="shadow-sm">
+      <Card  className="shadow-sm border-0 position-relative border-start border-success border-4"
+      style={{ borderRadius: "12px", transition: "all 0.25s" }}>
         <Card.Body>
           {showLoader ? (
             <div className="text-center py-5">
               <Spinner animation="border" />
-              <p className="mt-3 text-muted">Checking for live class...</p>
+              <p className="mt-3 text-muted">Loading your classes...</p>
             </div>
           ) : (
             <>
-            {activeClass && (
-              <Card className="mb-4 border-0 shadow-sm rounded-3">
-                <Card.Body className="d-flex justify-content-between align-items-center p-3">
-            
-                  {/* LEFT SIDE */}
-                  <div className="d-flex align-items-center gap-3 flex-grow-1">
-            
-                    {/* LIVE DOT */}
-                    <div
-                      style={{
-                        width: "10px",
-                        height: "10px",
-                        borderRadius: "50%",
-                        backgroundColor: activeClass.status === "live" ? "success" : "gray",
-                        animation: activeClass.status === "live" ? "pulse 1.5s infinite" : "none"
-                      }}
-                    />
-            
-                    {/* TITLE + INFO */}
-                    <div>
-                      <h5 className="mb-1 fw-semibold">{activeClass.title}</h5>
-            
-                      <div className="d-flex align-items-center gap-2">
-                        <Badge
-                          bg={activeClass.status === "live" ? "success" : "secondary"}
-                          className="px-2 py-1"
-                        >
-                          {activeClass.status === "live" ? "LIVE NOW" : "Live Soon"}
-                        </Badge>
-            
-                        {activeClass.startTime && (
-                          <small className="text-muted">
-                           Start time : {formatTime(activeClass.startTime)}
-                          </small>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-            
-                  {/* RIGHT SIDE BUTTON */}
-                  {activeClass.status === "live" && (
-                    <Button
-                      variant="success"
-                      className="px-4 fw-semibold"
-                      onClick={() => setJoinedClass(activeClass)}
-                    >
-                      Join Live
-                    </Button>
-                  )}
-                </Card.Body>
-            
-                {/* EXTRA STYLE (Pulse Animation) */}
-                <style>
-                  {`
-                    @keyframes pulse {
-                      0% { transform: scale(1); opacity: 1; }
-                      50% { transform: scale(1.5); opacity: 0.5; }
-                      100% { transform: scale(1); opacity: 1; }
-                    }
-                  `}
-                </style>
-              </Card>
-            )}
-
               {joinedClass && (
-                <div className="mb-4">
+                <div className="mb-4" >
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <div>
                       <h5 className="mb-1">{joinedClass.title}</h5>
@@ -252,35 +185,53 @@ export default function StudentLiveClass() {
                 </div>
               )}
 
-              {allClasses.length > 0 && (
+              {allClasses.length > 0 ? (
                 <>
-                  <h6 className="mt-4 mb-3 text-start">Your Upcoming Classes:</h6>
-                  {allClasses.map((cls) => (
-                    <Card key={cls._id} className="mb-3 shadow-sm">
-                      <Card.Body className="d-flex justify-content-between align-items-center">
-                        <div className="d-flex flex-column flex-grow-1">
-                          <h6 className="mb-1">{cls.title}</h6>
-                          <div className="d-flex gap-3 align-items-center text-muted small">
-                            <div>
-                              <strong>Time:</strong> {formatTime(cls.startTime)} - {formatTime(cls.endTime)}
+                <h6 className="mt-4 mb-3 text-start">Your Classes:</h6>
+                <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+                  {allClasses.map((cls) => {
+                    const past = isClassPast(cls);
+            
+                    return (
+                      <Card key={cls._id}  className="mb-3 shadow-sm border-0 position-relative border-start border-success border-4"
+                      style={{ borderRadius: "12px", transition: "all 0.25s" }}>
+                        <Card.Body className="d-flex justify-content-between align-items-center flex-wrap">
+                          <div className="d-flex flex-column flex-grow-1 mb-2">
+                            <h6 className="mb-1">{cls.title}</h6>
+                            <div className="d-flex gap-3 align-items-center text-muted small flex-wrap">
+                              <div>
+                                <strong>Date:</strong> {formatDate(cls.startTime)}
+                              </div>
+                              <div>
+                                <strong>Time:</strong> {formatTime(cls.startTime)} - {formatTime(cls.endTime)}
+                              </div>
+                              <Badge 
+                                bg={past ? "secondary" : cls.status === "live" ? "success" : "primary"} 
+                                className="text-capitalize"
+                              >
+                                {past ? "Time Passed" : cls.status}
+                              </Badge>
                             </div>
-                            <Badge bg={cls.status === "live" ? "success" : "danger"} className="text-capitalize">
-                              {cls.status}
-                            </Badge>
                           </div>
-                        </div>
-                        {cls.status === "live" && (
-                          <Button variant="success" onClick={() => setJoinedClass(cls)}>
-                            Join Live
-                          </Button>
-                        )}
-                      </Card.Body>
-                    </Card>
-                  ))}
-                </>
-              )}
-
-              {allClasses.length === 0 && (
+            
+                          {!past && cls.status === "live" && (
+                            <Button variant="success" onClick={() => setJoinedClass(cls)}>
+                              Join Live
+                            </Button>
+                          )}
+            
+                          {past && (
+                            <Button variant="secondary" disabled>
+                              Class Ended
+                            </Button>
+                          )}
+                        </Card.Body>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </>
+              ) : (
                 <p className="text-muted mt-3">No classes assigned yet.</p>
               )}
             </>

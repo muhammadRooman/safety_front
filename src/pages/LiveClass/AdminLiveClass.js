@@ -147,10 +147,26 @@ export default function AdminLiveClass() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+  
     if (!form.title || !form.startTime || !form.endTime) {
       toast.error("Title, start and end time are required");
       return;
     }
+  
+    const now = new Date();
+    const endTime = new Date(form.endTime);
+    const startTime = new Date(form.startTime);
+  
+    if (endTime <= now) {
+      toast.error("Cannot schedule a class. The end time has already passed.");
+      return;
+    }
+  
+    if (startTime >= endTime) {
+      toast.error("Start time must be before end time");
+      return;
+    }
+  
     try {
       setCreating(true);
       await axios.post(`${process.env.REACT_APP_BASE_ADMIN_API}/admin/live-class`, form, {
@@ -222,9 +238,7 @@ export default function AdminLiveClass() {
         <Breadcrumb.Item href="/dashboard">Dashboard</Breadcrumb.Item>
         <Breadcrumb.Item active>Live Class (Admin)</Breadcrumb.Item>
       </Breadcrumb>
-
-      <h3 className="mb-3 fw-semibold">Live Class (Admin)</h3>
-
+      <h3 className="fw-bold mb-4 fw-semibold name_heading">Live Class (Admin)</h3>
       <Row className="g-3">
         {/* Left Form */}
         <Col lg={5}>
@@ -463,6 +477,11 @@ export default function AdminLiveClass() {
     </Container>
   );
 }
+
+
+
+
+
 // import React, { useEffect, useRef, useState, useCallback } from "react";
 // import axios from "axios";
 // import { useSelector } from "react-redux";
