@@ -23,13 +23,6 @@ const List = () => {
     "Risk Assessment",
     "First Aid",
     "Fire Safety",
-    "Safety Management",
-    "Fair Safety",
-    "Electrical Safety",
-    "Construction Safety",
-    "Confined Space Training",
-    "Lifting & Rigging Safety",
-    "Chemical Handling Safety",
   ];
 
   const DEFAULT_DESCRIPTION =
@@ -113,9 +106,10 @@ const List = () => {
         chunkedCourses.map((chunk, rowIndex) => (
           <Row className="mb-3 g-3" key={rowIndex}>
             {chunk.map((course, colIndex) => (
-              <Col xs={12} sm={6} md={4} key={colIndex}>
-                <Card
-                  className="shadow-sm text-center course-card"
+              <Col xs={12} sm={6} md={4} key={colIndex} >
+                <Card  className="course-card shadow-sm border-0 border-start border-warning border-4"
+                style={{ borderRadius: "12px" }}
+                 
                   onClick={() => handleCardClick(course)}
                 >
                   <Card.Body className="fw-bold">{course}</Card.Body>
@@ -142,7 +136,7 @@ const List = () => {
         keyboard={false}
       >
         <Modal.Header closeButton className="bg-warning text-black">
-          <Modal.Title>{selectedCourse}</Modal.Title>
+          <Modal.Title>Course: {selectedCourse}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <h5 className="course_information">Course Information</h5>

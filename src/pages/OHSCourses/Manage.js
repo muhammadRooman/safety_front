@@ -15,19 +15,27 @@ import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { MdDelete, MdEdit, MdAdd } from "react-icons/md";
 
+
 const DEFAULT_COURSES = [
-  "NEBOSH", "IOSH", "OSHA", "Rigger 1", "Rigger 2", "Rigger 3",
-  "Risk Assessment", "First Aid", "Fire Safety", "Safety Management",
-  "Electrical Safety", "Construction Safety", "Confined Space Training",
-  "Lifting & Rigging Safety", "Chemical Handling Safety"
+  "NEBOSH",
+  "IOSH",
+  "OSHA",
+  "Rigger 1",
+  "Rigger 2",
+  "RIGGER3",
+  "Risk Assessment",
+  "First Aid",
+  "Fire Safety",
+  "Safety Management",
+  "Fair Safety",
 ];
 
 const DEFAULT_DESCRIPTION = "This course is designed to enhance your skills and knowledge in occupational health & safety.";
 const DEFAULT_CONTACT = {
   name: "OHS Academy",
-  email: "muhammad.rooman5@gmail.com",
-  phone: "0333-0222006",
-  address: "House #3, Peshawar Saddar",
+  email: "ohsacademy1@gmail.com",
+  phone: "03429090753",
+  address: "Main bazar sher ghar khattak plaza top floor peshawar",
 };
 
 export default function OhsCourseManage() {

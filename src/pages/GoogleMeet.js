@@ -42,7 +42,7 @@ const GoogleMeet = () => {
   useEffect(() => {
     if (!studentId || !token) return;
     fetchLink(false);
-    const intervalId = setInterval(() => fetchLink(true), 9000);
+    const intervalId = setInterval(() => fetchLink(true), 25000);
     return () => clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentId, token]);
