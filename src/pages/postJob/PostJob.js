@@ -126,31 +126,33 @@ export default function PostJob() {
     loadJob();
   }, [editJobId, token, navigate]);
 
-  const buildFormData = (status) => {
-    const fd = new FormData();
-    fd.append("postMode", mode);
-    fd.append("status", status);
+ const buildFormData = (status) => {
+  const fd = new FormData();
+  fd.append("postMode", mode);
+  fd.append("status", status);
 
-    // Common Fields
-    fd.append("title", formData.title.trim());
-   
+  fd.append("title", formData.title.trim());
 
-    if (mode === "image") {
-      fd.append("description", formData.description.trim());
-      if (formData.posterFile) fd.append("posterImage", formData.posterFile);
-    } else {
-      fd.append("companyName", formData.companyName.trim());
-      fd.append("contactNumber", formData.contactNumber.trim());
-      fd.append("location", formData.location.trim());
-      fd.append("jobType", formData.jobType);
-      fd.append("jobDescription", formData.jobDescription.trim());
-      fd.append("skills", formData.skills.trim());
-      if (formData.deadline) fd.append("deadline", formData.deadline);
-      fd.append("applyLink", formData.applyLink.trim());
-    }
+  // ✅ common optional field
+  if (formData.contactNumber) {
+    fd.append("contactNumber", formData.contactNumber.trim());
+  }
 
-    return fd;
-  };
+  if (mode === "image") {
+    fd.append("description", formData.description.trim());
+    if (formData.posterFile) fd.append("posterImage", formData.posterFile);
+  } else {
+    fd.append("companyName", formData.companyName.trim());
+    fd.append("location", formData.location.trim());
+    fd.append("jobType", formData.jobType);
+    fd.append("jobDescription", formData.jobDescription.trim());
+    fd.append("skills", formData.skills.trim());
+    if (formData.deadline) fd.append("deadline", formData.deadline);
+    fd.append("applyLink", formData.applyLink.trim());
+  }
+
+  return fd;
+};
 
   const submit = async (status) => {
     if (user?.role !== "teacher") {
@@ -290,7 +292,7 @@ export default function PostJob() {
                     type="tel"
                     value={formData.contactNumber}
                     onChange={handleChange("contactNumber")}
-                    placeholder="03xx-xxxxxxx"
+                    placeholder="03xx-xxxxxxx1"
                   />
                 </Form.Group>
               </Col>

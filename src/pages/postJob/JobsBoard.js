@@ -298,7 +298,7 @@ export default function JobsBoard() {
                     src={imageUrl}
                     alt="Job Poster"
                     className="w-100"
-                    style={{ maxHeight: "420px", objectFit: "cover" }}
+                    style={{ maxHeight: "auto", objectFit: "cover" }}
                   />
                 </div>
               )}

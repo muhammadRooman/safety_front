@@ -236,7 +236,7 @@ export default function AllJobs() {
         <Modal.Header closeButton>
           <Modal.Title>Delete job?</Modal.Title>
         </Modal.Header>
-        <Modal.Body>This cannot be undone.</Modal.Body>
+        <Modal.Body>Are you want to delete this post ?</Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowDel(false)}>
             Cancel
