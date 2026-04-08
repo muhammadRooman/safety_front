@@ -149,7 +149,7 @@ export default function StudentLiveClass() {
       </Breadcrumb>
 
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3 className="fw-bold mb-0">Live Class</h3>
+        <h3 className=" mb-0 fw-semibold name_heading">Live Class</h3>
         <Button
           variant="outline-primary"
           size="sm"
@@ -282,7 +282,9 @@ export default function StudentLiveClass() {
                     })}
                 </div>
               ) : (
-                <p className="text-muted">No Session assigned yet.</p>
+             <p style={{ color: "#e74c3c" }}>
+  No session assigned yet. Kindly contact the admin if you have not received your video call session.
+</p>
               )}
             </>
           )}
