@@ -400,7 +400,7 @@ const handleProvideLink = async (row) => {
 
       <Row className="mb-4 align-items-center justify-content-between">
       <Col xs={12} md="auto" className="mb-2 mb-md-0">
-        <h3 className=" mb-0 fw-semibold name_heading">{t("student List")}</h3>
+        <h3 className=" mb-0 fw-semibold name_heading">{t("All Students List")}</h3>
       </Col>
     <Col
 xs={12}
