@@ -10,7 +10,7 @@ export const STUDENT_PREFIX = "/dashboard/student";
 
 export const adminRoutes = {
   studentRegister: `${ADMIN_PREFIX}/student-register`,
-  courseVideos: `${ADMIN_PREFIX}/course-videos`,
+  courseVideos: `${ADMIN_PREFIX}/manage-videos`,
   studentsEnroll: `${ADMIN_PREFIX}/students-enroll`,
   studentsEnrollCreate: `${ADMIN_PREFIX}/students-enroll/create`,
   teacherEnrollCreate: `${ADMIN_PREFIX}/teacher-enroll/create`,

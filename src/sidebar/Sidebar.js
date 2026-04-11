@@ -330,8 +330,8 @@ const Sidebar = () => {
 
               <Nav.Link
                 as={Link}
-                to="/dashboard/course-videos"
-                className={`sidebar-link ${isActive('/dashboard/course-videos') ? 'active' : ''}`}
+                to="/dashboard/manage-videos"
+                className={`sidebar-link ${isActive('/dashboard/manage-videos') ? 'active' : ''}`}
                 onClick={closeSidebar}
               >
                 <FaFilm   size={25}  className="me-3" /> {t('COURSE_VIDEOS')}

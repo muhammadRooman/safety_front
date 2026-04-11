@@ -400,7 +400,7 @@
       Mobile Fine-tuning
       ========================================================================== */
    
-   /* Course Videos toolbar selects: no flex-grow when stacked (avoids huge vertical stretch) */
+   /* Manage Videos toolbar selects: no flex-grow when stacked (avoids huge vertical stretch) */
    .course-video-toolbar-select.form-select {
      flex: 0 1 auto;
      align-self: stretch;
@@ -415,7 +415,7 @@
      }
    }
 
-   /* Course Videos toolbar: compact controls on narrow viewports */
+   /* Manage Videos toolbar: compact controls on narrow viewports */
    @media (max-width: 767.98px) {
      /* Match Bootstrap .form-select-sm height so filters aren’t oversized when stacked */
      .course-video-toolbar-select.form-select {

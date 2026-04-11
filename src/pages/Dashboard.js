@@ -38,7 +38,7 @@ const Dashboard = () => {
     fetchUserDetails();
   }, [fetchUserDetails]);
 
-  // Fetch course videos count
+  // Fetch Manage Videos count
   const fetchVideosCount = useCallback(async () => {
     try {
       const endpoint =
@@ -98,7 +98,7 @@ const Dashboard = () => {
 
   const handleClick = () => {
     if (user?.role === "teacher") {
-      navigate("/dashboard/course-videos");
+      navigate("/dashboard/manage-videos");
     } else {
       navigate("/dashboard/my-videos");
     }

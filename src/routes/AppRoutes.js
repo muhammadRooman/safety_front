@@ -117,7 +117,7 @@ const AppRoutes = () => {
           />
                 
           <Route
-            path="dashboard/course-videos"
+            path="dashboard/manage-videos"
             element={
               <TeacherRoute>
                 <CourseVideoList />

@@ -527,9 +527,9 @@ className="d-flex gap-2 justify-content-end flex-wrap flex-md-nowrap"
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Course videos language</Form.Label>
+              <Form.Label>Manage Videos language</Form.Label>
               <Form.Text className="d-block mb-2 text-muted" style={{ fontSize: "12px" }}>
-                This student will only see course videos uploaded in this language (Course Videos page). Example: Urdu for Pakistani students, English or Arabic as needed.
+                This student will only see Manage Videos uploaded in this language (Manage Videos page). Example: Urdu for Pakistani students, English or Arabic as needed.
               </Form.Text>
               <Form.Select
                 name="videoLanguage"

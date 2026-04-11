@@ -63,14 +63,14 @@ export default function MyVideos() {
     <Container className="py-4">
       <Breadcrumb>
         <Breadcrumb.Item onClick={() => navigate("/dashboard")}>Dashboard</Breadcrumb.Item>
-        <Breadcrumb.Item active>My Course Videos</Breadcrumb.Item>
+        <Breadcrumb.Item active>My Manage Videos</Breadcrumb.Item>
       </Breadcrumb>
 
 
 
       <Row className="mb-4">
         <Col>
-          <h3 className="mb-0 fw-semibold name_heading">My Course Videos</h3>
+          <h3 className="mb-0 fw-semibold name_heading">My Manage Videos</h3>
           <p
           className="mb-1"
           style={{
@@ -111,7 +111,7 @@ export default function MyVideos() {
           </span>
             
             {" — "}
-            You only see course videos recorded in this language. To change it, contact the admin.
+            You only see Manage Videos recorded in this language. To change it, contact the admin.
           </p>
           
           
@@ -124,7 +124,7 @@ export default function MyVideos() {
         <Card>
         <Card.Body className="text-center" style={{ color: "#dc3545" }}>
         <p style={{ fontWeight: 600, fontSize: "1rem", marginBottom: "0.5rem" }}>
-          No course videos to show yet.
+          No Manage Videos to show yet.
         </p>
         <p style={{ fontSize: "0.95rem", marginBottom: "0.5rem" }}>
           If you have assigned courses but no videos appear, the admin may not have uploaded videos in your language ({assignedVideoLanguage || "English"}) yet, or payment may still be pending. Contact admin if you need a different video language.

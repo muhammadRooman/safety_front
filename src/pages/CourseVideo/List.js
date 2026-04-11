@@ -313,13 +313,13 @@ export default function CourseVideoList() {
       {/* Breadcrumb */}
       <Breadcrumb>
         <Breadcrumb.Item onClick={() => navigate("/dashboard")}>Dashboard</Breadcrumb.Item>
-        <Breadcrumb.Item active>Course Videos</Breadcrumb.Item>
+        <Breadcrumb.Item active>Manage Videos</Breadcrumb.Item>
       </Breadcrumb>
 
       {/* Header 
       <Row className="mb-4 justify-content-between align-items-center">
         <Col>
-          <h3 className="mb-0 fw-semibold">Course Videos</h3>
+          <h3 className="mb-0 fw-semibold">Manage Videos</h3>
         </Col>
         <Col md="auto" className="d-flex gap-2">
           <Form.Select
@@ -350,7 +350,7 @@ export default function CourseVideoList() {
 
       <Row className="mb-4 align-items-center justify-content-between">
       <Col xs={12} md="auto" className="mb-2 mb-md-0">
-        <h3 className=" mb-0 fw-semibold name_heading">Course Videos</h3>
+        <h3 className=" mb-0 fw-semibold name_heading">Manage Videos</h3>
       </Col>
     <Col
       xs={12}

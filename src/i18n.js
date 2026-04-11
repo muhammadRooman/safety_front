@@ -16,7 +16,7 @@ i18n
     resources: {
       en: {
         translation: {
-          CMS_TITLE: 'OHS For Uploading  Course Videos',
+          CMS_TITLE: 'OHS For Uploading  Manage Videos',
           PROFILE: 'Profile',
           LOGOUT: 'Logout',
           CONFIRM_LOGOUT: 'Confirm Logout',
@@ -32,7 +32,7 @@ i18n
           UPLOAD_ASSIGNMENT: "Upload Assignment",
           CHECK_ASSIGNMENT: "Check Assignment",
           TEACHERS: "Teachers",
-          COURSE_VIDEOS: "Course Videos",
+          COURSE_VIDEOS: "Manage Videos",
           MY_VIDEOS: "My Videos",
           LOGOUT_CONFIRM_TEXT: "Are you sure you want to logout?",
           CANCEL: "Cancel",
