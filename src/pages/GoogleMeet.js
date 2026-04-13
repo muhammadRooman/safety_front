@@ -24,7 +24,10 @@ const GoogleMeet = () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BASE_ADMIN_API}/admin/provide-link/${studentId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          showGlobalLoader: false,
+        }
       );
       setLinkData(response.data?.data || null);
     } catch (error) {

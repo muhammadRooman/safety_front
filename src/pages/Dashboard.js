@@ -6,7 +6,7 @@ import { SiGooglemeet } from "react-icons/si";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FaFilm, FaRedo, FaChalkboardTeacher, FaVideo } from "react-icons/fa";
+import { FaFilm, FaRedo, FaChalkboardTeacher, FaVideo, FaAward } from "react-icons/fa";
 import { HiUsers } from "react-icons/hi2";
 
 const Dashboard = () => {
@@ -16,6 +16,7 @@ const Dashboard = () => {
   const [videosCount, setVideosCount] = useState(0);
   const [enrollTeacherCount, setEnrollTeacherCount] = useState(0);
   const [studentsCount, setStudentsCount] = useState(0);
+  const [certificatesCount, setCertificatesCount] = useState(0);
 
   const token = useSelector((state) => state.auth.token);
 
@@ -88,13 +89,30 @@ const Dashboard = () => {
     }
   }, [token, user?.role, t]);
 
+  const fetchCertificatesCount = useCallback(async () => {
+    try {
+      if (user?.role !== "student") return;
+      const res = await axios.get(
+        `${process.env.REACT_APP_BASE_ADMIN_API}/admin/certificates/me`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          showGlobalLoader: false,
+        }
+      );
+      setCertificatesCount(Array.isArray(res.data) ? res.data.length : 0);
+    } catch {
+      setCertificatesCount(0);
+    }
+  }, [token, user?.role]);
+
   useEffect(() => {
     if (user) {
       fetchVideosCount();
       fetchEnrollTeacherCount();
       fetchStudentsCount();
+      fetchCertificatesCount();
     }
-  }, [user, fetchVideosCount, fetchEnrollTeacherCount, fetchStudentsCount]);
+  }, [user, fetchVideosCount, fetchEnrollTeacherCount, fetchStudentsCount, fetchCertificatesCount]);
 
   const handleClick = () => {
     if (user?.role === "teacher") {
@@ -149,6 +167,20 @@ const Dashboard = () => {
       </Card.Body>
     </Card>
   </Col>
+  <Col>
+    <Card
+      className="dashboard-card h-100"
+      onClick={() => navigate("/dashboard/my-certificates")}
+      style={{ cursor: "pointer" }}
+    >
+      <Card.Body className="text-center">
+        <FaAward size={40} className="mb-2 dashboard-card-icon text-warning" />
+        <Card.Title>Certificates</Card.Title>
+        <Card.Text>PDF certificates issued by your instructor.</Card.Text>
+        <Card.Text>{certificatesCount}</Card.Text>
+      </Card.Body>
+    </Card>
+  </Col>
   </>
  
 )}
@@ -194,6 +226,19 @@ const Dashboard = () => {
                     <FaVideo size={40} className="mb-2 dashboard-card-icon text-success"/>
                     <Card.Title>{t("Live Class")}</Card.Title>
                     <Card.Text>{t("Admin takes live classes for students.")}</Card.Text>
+                  </Card.Body>
+                </Card>
+              </Col>
+              <Col>
+                <Card
+                  className="dashboard-card h-100"
+                  onClick={() => navigate("/dashboard/certificates")}
+                  style={{ cursor: "pointer" }}
+                >
+                  <Card.Body className="text-center">
+                    <FaAward size={40} className="mb-2 dashboard-card-icon text-warning" />
+                    <Card.Title>Certificates</Card.Title>
+                    <Card.Text>Issue PDF certificates to students.</Card.Text>
                   </Card.Body>
                 </Card>
               </Col>

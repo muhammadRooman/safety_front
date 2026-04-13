@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import PrivateRoute from "../components/PrivateRoute";
 import TeacherRoute from "../components/TeacherRoute";
+import StudentRoute from "../components/StudentRoute";
 import Layout from "../components/Layout";
 import ListTracker from "../pages/tracker/List";
 import AddTracker from "../pages/tracker/Create";
@@ -44,6 +45,8 @@ const OHSCourseManage = lazy(() => import("../pages/OHSCourses/Manage"));
 const PostJob = lazy(() => import("../pages/postJob/PostJob"));
 const AllJobs = lazy(() => import("../pages/postJob/AllJobs"));
 const JobsBoard = lazy(() => import("../pages/postJob/JobsBoard"));
+const AdminCertificates = lazy(() => import("../pages/Certificates/AdminCertificates"));
+const StudentCertificates = lazy(() => import("../pages/Certificates/StudentCertificates"));
 
 const AppRoutes = () => {
   return (
@@ -130,6 +133,22 @@ const AppRoutes = () => {
               <PrivateRoute>
                 <MyVideos />
               </PrivateRoute>
+            }
+          />
+          <Route
+            path="dashboard/certificates"
+            element={
+              <TeacherRoute>
+                <AdminCertificates />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="dashboard/my-certificates"
+            element={
+              <StudentRoute>
+                <StudentCertificates />
+              </StudentRoute>
             }
           />
           <Route

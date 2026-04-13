@@ -7,7 +7,6 @@ const LoaderOverlay = () => {
   return (
     <div className="global-loader-overlay">
       <div className="global-loader-card">
-        <div className="global-loader-ring" />
         <div className="global-loader-text">Loading...</div>
       </div>
     </div>

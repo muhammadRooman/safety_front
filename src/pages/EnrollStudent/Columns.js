@@ -1,14 +1,11 @@
- "use client";
+"use client";
+
 import { MdEdit, MdDelete } from "react-icons/md";
 import { BsSendPlus } from "react-icons/bs";
 
 const Columns = ({ handleEdit, handleDelete, handleProvideLink, onlineStudentIds = [] }) => [
-  {
-    name: "ID",
-    cell: (row, index) => index + 1,
-    width: "52px",
-    minWidth: "52px",
-  },
+  // ==================== ID COLUMN HAT GAYA ====================
+  
   {
     name: "Name",
     grow: 1.5,
@@ -17,7 +14,7 @@ const Columns = ({ handleEdit, handleDelete, handleProvideLink, onlineStudentIds
       const isOnline = onlineStudentIds.some(
         (id) => String(id) === String(row._id)
       );
-  
+
       return (
         <div className="d-flex align-items-center gap-2">
           <span
@@ -26,7 +23,7 @@ const Columns = ({ handleEdit, handleDelete, handleProvideLink, onlineStudentIds
               width: 10,
               height: 10,
               borderRadius: "50%",
-              backgroundColor: isOnline ? "#28a745" : "#dc3545", // green if online, red if offline
+              backgroundColor: isOnline ? "#28a745" : "#dc3545",
               boxShadow: `0 0 4px ${isOnline ? "rgba(40, 167, 69, 0.8)" : "rgba(220, 53, 69, 0.8)"}`,
             }}
           />
@@ -72,28 +69,17 @@ const Columns = ({ handleEdit, handleDelete, handleProvideLink, onlineStudentIds
         ) : row.role === "teacher" ? (
           <span
             style={{
-              backgroundColor: "#dc3545",
+              backgroundColor: "#1dcc2b",
               color: "#fff",
               padding: "2px 6px",
               borderRadius: "4px",
               fontSize: "12px",
             }}
           >
-            OHS Courses Academy
+            CEO Farooq Khan
           </span>
         ) : (
-          <span
-            // className="blink-text"
-            // style={{
-            //   backgroundColor: "orange",
-            //   color: "#fff",
-            //   padding: "2px 6px",
-            //   borderRadius: "4px",
-            //   fontSize: "12px",
-            // }}
-          >
-            No Course Assigned
-          </span>
+          <span>No Course Assigned</span>
         )}
       </div>
     ),
@@ -110,7 +96,6 @@ const Columns = ({ handleEdit, handleDelete, handleProvideLink, onlineStudentIds
         <span className="text-capitalize">{row.videoLanguage || "English"}</span>
       ),
   },
-
   {
     name: "Action",
     button: true,
@@ -123,10 +108,12 @@ const Columns = ({ handleEdit, handleDelete, handleProvideLink, onlineStudentIds
           <div className="text-center w-100">
             <button
               type="button"
-              className="btn btn-sm btn-warning px-4"
+              className="btn btn-sm btn-warning px-4 fw-bold text-dark"
               title="Admin Role"
+              disabled
+              style={{ opacity: 1, cursor: "not-allowed" }}
             >
-              Admin
+              Supper Admin
             </button>
           </div>
         ) : (
@@ -154,21 +141,11 @@ const Columns = ({ handleEdit, handleDelete, handleProvideLink, onlineStudentIds
               className={`btn btn-sm student-table-action-btn ${
                 row.hasLink ? "ee" : "btn-primary"
               }`}
-              title={
-                row.hasLink
-                  ? "Sended Google Meet Link"
-                  : "Provide Google Meet Link"
-              }
+              title={row.hasLink ? "Sended Google Meet Link" : "Provide Google Meet Link"}
               onClick={() => handleProvideLink(row)}
             >
               {row.hasLink ? (
-                <img
-                  src="/meet.png"
-                  alt=""
-                  width={24}
-                  height={24}
-                  style={{ display: "block" }}
-                />
+                <img src="/meet.png" alt="" width={24} height={24} style={{ display: "block" }} />
               ) : (
                 <BsSendPlus size={22} />
               )}

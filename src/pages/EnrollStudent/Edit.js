@@ -30,7 +30,11 @@ export default function StudentEnrollList() {
   const navigate = useNavigate();
   const token = useSelector((state) => state.auth.token);
 
-  // States
+  // ==================== NEW STATES FOR ID NUMBERING ====================
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Existing States
   const [showPassword, setShowPassword] = useState(false);
   const [blogs, setBlogs] = useState([]);
   const [filterText, setFilterText] = useState("");
@@ -108,7 +112,12 @@ export default function StudentEnrollList() {
       }
 
       if (response) {
-        setBlogs(response.data.users || []);
+        const sorted = (response.data.users || []).sort((a, b) => {
+          if (a.role === "teacher" && b.role !== "teacher") return -1;
+          if (b.role === "teacher" && a.role !== "teacher") return 1;
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+        setBlogs(sorted);
       }
     } catch (err) {
       toast.error("Error fetching students");
@@ -119,13 +128,11 @@ export default function StudentEnrollList() {
     fetchUser();
   }, [fetchUser]);
 
-  // Listen to socket events for online students so status shows in enroll list
+  // Socket for online students
   useEffect(() => {
     if (!token) return;
 
-    const s = io(SOCKET_URL, {
-      transports: ["websocket"],
-    });
+    const s = io(SOCKET_URL, { transports: ["websocket"] });
 
     s.on("online-students", ({ studentIds }) => {
       if (!Array.isArray(studentIds)) return;
@@ -149,12 +156,9 @@ export default function StudentEnrollList() {
       setOnlineStudentIds((prev) => prev.filter((id) => String(id) !== sid));
     });
 
-    // Emit after listeners to avoid missing the initial `online-students` emit
     s.emit("join-admin");
 
-    return () => {
-      s.disconnect();
-    };
+    return () => s.disconnect();
   }, [SOCKET_URL, token]);
 
   useEffect(() => {
@@ -173,7 +177,6 @@ export default function StudentEnrollList() {
       : [];
     const courseMatch = !filterCourse || subjects.includes(filterCourse);
 
-    // Active = online (socket), Unactive = offline
     const isActive = onlineStudentIds.includes(String(item._id));
     const statusMatch =
       statusFilter === "all"
@@ -207,45 +210,33 @@ export default function StudentEnrollList() {
     setOpen(true);
   };
 
-  // ==================== PROVIDE GOOGLE MEET LINK ====================
-// ==================== PROVIDE GOOGLE MEET LINK ====================
-const handleProvideLink = async (row) => {
-  console.log(row)
-  setProvideLinkId(row._id);
-  setMeetLink("");           // reset first
-  setShowLinkModal(true);
-  setLoadingLink(true);
+  // Provide Google Meet Link
+  const handleProvideLink = async (row) => {
+    console.log(row);
+    setProvideLinkId(row._id);
+    setMeetLink("");
+    setShowLinkModal(true);
+    setLoadingLink(true);
 
-  try {
-    const response = await axios.get(
-      `${process.env.REACT_APP_BASE_ADMIN_API}/admin/provide-link/${row._id}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASE_ADMIN_API}/admin/provide-link/${row._id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const existingLink = response.data?.data?.link || response.data?.link;
+      if (existingLink) {
+        setMeetLink(existingLink);
       }
-    );
-
-    console.log("Full response from backend:", response.data); // ← For debugging
-
-    // ✅ Correct way to access the link
-    const existingLink = response.data?.data?.link || response.data?.link;
-
-    if (existingLink) {
-      setMeetLink(existingLink);
-      console.log("✅ Existing link loaded successfully:", existingLink);
-    } else {
-      console.log("ℹ️ No link found for this student");
+    } catch (err) {
+      if (err.response?.status !== 404) {
+        console.error("Error fetching link:", err);
+      }
+    } finally {
+      setLoadingLink(false);
     }
-  } catch (err) {
-    if (err.response?.status === 404) {
-      console.log("ℹ️ No link assigned yet (404) - Normal behavior");
-    } else {
-      console.error("Error fetching link:", err.response?.data || err.message);
-    }
-  } finally {
-    setLoadingLink(false);
-  }
-};
-  // Submit / Update Link
+  };
+
   const handleSubmitLink = async () => {
     if (!meetLink.trim()) {
       toast.error("Please enter a valid Google Meet link");
@@ -256,17 +247,12 @@ const handleProvideLink = async (row) => {
       await axios.post(
         `${process.env.REACT_APP_BASE_ADMIN_API}/admin/provide-link/${provideLinkId}`,
         { link: meetLink.trim() },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
       toast.success("Google Meet link saved successfully!");
       setShowLinkModal(false);
       setMeetLink("");
       setProvideLinkId("");
-
-      // Refresh student list
       if (user?.role) fetchBlogs(user.role);
     } catch (err) {
       toast.error("Failed to save Google Meet link");
@@ -276,14 +262,10 @@ const handleProvideLink = async (row) => {
   const handleDeleteLink = async () => {
     if (!provideLinkId) return;
     try {
-      // Find current link doc for selected student first
       const getRes = await axios.get(
         `${process.env.REACT_APP_BASE_ADMIN_API}/admin/provide-link/${provideLinkId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
       const linkDocId = getRes?.data?.data?._id;
       if (!linkDocId) {
         toast.error("No link found for this student");
@@ -292,22 +274,15 @@ const handleProvideLink = async (row) => {
 
       await axios.delete(
         `${process.env.REACT_APP_BASE_ADMIN_API}/admin/provide-link/${linkDocId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
       toast.success("Google Meet link deleted successfully!");
-      setMeetLink("");
       setShowLinkModal(false);
+      setMeetLink("");
       setProvideLinkId("");
       if (user?.role) fetchBlogs(user.role);
     } catch (err) {
-      if (err?.response?.status === 404) {
-        toast.error("No link found for this student");
-      } else {
-        toast.error("Failed to delete Google Meet link");
-      }
+      toast.error("Failed to delete Google Meet link");
     }
   };
 
@@ -360,18 +335,36 @@ const handleProvideLink = async (row) => {
 
       setShowAddModal(false);
       setIsEdit(false);
-      setNewStudent({ name: "", email: "", phone: "", subject: [], password: "", videoLanguage: "English" });
+      setNewStudent({
+        name: "",
+        email: "",
+        phone: "",
+        subject: [],
+        password: "",
+        videoLanguage: "English",
+      });
     } catch (err) {
       toast.error("User already exists or error occurred");
     }
   };
 
-  const columns = Columns({
-    handleEdit,
-    handleDelete,
-    handleProvideLink,
-    onlineStudentIds,
-  });
+  // ==================== FINAL COLUMNS WITH GLOBAL ID ====================
+  const tableColumns = [
+    {
+      name: "ID",
+      cell: (row, rowIndex) => {
+        return (currentPage - 1) * rowsPerPage + rowIndex + 1;
+      },
+      width: "52px",
+      minWidth: "52px",
+    },
+    ...Columns({
+      handleEdit,
+      handleDelete,
+      handleProvideLink,
+      onlineStudentIds,
+    }),
+  ];
 
   const csvHeaders = [
     { label: "Name", key: "name" },
@@ -396,88 +389,89 @@ const handleProvideLink = async (row) => {
         <Breadcrumb.Item active>All Students</Breadcrumb.Item>
       </Breadcrumb>
 
-     
-
       <Row className="mb-4 align-items-center justify-content-between">
-      <Col xs={12} md="auto" className="mb-2 mb-md-0">
-        <h3 className=" mb-0 fw-semibold name_heading">{t("All Students List")}</h3>
-      </Col>
-    <Col
-xs={12}
-md="auto"
-className="d-flex gap-2 justify-content-end flex-wrap flex-md-nowrap"
->
-{filteredItems.length > 0 && (
-  <CSVLink
-    data={csvData}
-    headers={csvHeaders}
-    filename="student_records.csv"
-    className="btn csv px-3"
-  >
-    <FaDownload /> Export <span className="d-none d-sm-inline"></span>
-  </CSVLink>
-)}
-<Button className="action-dark" onClick={() => { fetchBlogs(user.role) }}><IoMdRefresh size={25}/></Button>
-<Button
-  className="buttonColor px-3 d-flex align-items-center"
-  onClick={() => {
-            setIsEdit(false);
-            setEditId(null);
-            setNewStudent({ name: "", email: "", phone: "", subject: [], password: "", videoLanguage: "English" });
-            setShowAddModal(true);
-          }}
->
-  <IoMdAdd size={25} />Add Student
-  <span className="ms-1 d-none d-sm-inline"></span>
-</Button>
-</Col>
-    </Row>
-
-
-    {cSVHide && (
-      <Row className="mb-3 g-2">
-        <Col xs={12} sm={6} md={4}>
-          <Form.Control
-            type="text"
-            placeholder="Search by name"
-            value={filterText}
-            onChange={(e) => setFilterText(e.target.value)}
-          />
+        <Col xs={12} md="auto" className="mb-2 mb-md-0">
+          <h3 className="mb-0 fw-semibold name_heading">{t("All Students List")}</h3>
         </Col>
-    
-        <Col xs={12} sm={6} md={4}>
-          <Form.Select
-            value={filterCourse}
-            onChange={(e) => setFilterCourse(e.target.value)}
+        <Col xs={12} md="auto" className="d-flex gap-2 justify-content-end flex-wrap flex-md-nowrap">
+          {filteredItems.length > 0 && (
+            <CSVLink
+              data={csvData}
+              headers={csvHeaders}
+              filename="student_records.csv"
+              className="btn csv px-3"
+            >
+              <FaDownload /> Export
+            </CSVLink>
+          )}
+          <Button className="action-dark" onClick={() => fetchBlogs(user?.role)}>
+            <IoMdRefresh size={25} />
+          </Button>
+          <Button
+            className="buttonColor px-3 d-flex align-items-center"
+            onClick={() => {
+              setIsEdit(false);
+              setEditId(null);
+              setNewStudent({
+                name: "",
+                email: "",
+                phone: "",
+                subject: [],
+                password: "",
+                videoLanguage: "English",
+              });
+              setShowAddModal(true);
+            }}
           >
-            <option value="">All courses</option>
-            {subjectOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </Form.Select>
-        </Col>
-        <Col xs={12} sm={6} md={4}>
-          <Form.Select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">All Students</option>
-            <option value="active">🟢 Active (Online)</option>
-            <option value="inactive">🔴 Unactive (Offline)</option>
-          </Form.Select>
+            <IoMdAdd size={25} /> Add Student
+          </Button>
         </Col>
       </Row>
-    )}
+
+      {cSVHide && (
+        <Row className="mb-3 g-2">
+          <Col xs={12} sm={6} md={4}>
+            <Form.Control
+              type="text"
+              placeholder="Search by name"
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+            />
+          </Col>
+          <Col xs={12} sm={6} md={4}>
+            <Form.Select value={filterCourse} onChange={(e) => setFilterCourse(e.target.value)}>
+              <option value="">All courses</option>
+              {subjectOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </Form.Select>
+          </Col>
+          <Col xs={12} sm={6} md={4}>
+            <Form.Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="all">All Students</option>
+              <option value="active">🟢 Active (Online)</option>
+              <option value="inactive">🔴 Unactive (Offline)</option>
+            </Form.Select>
+          </Col>
+        </Row>
+      )}
+
       <Card>
         <Card.Body>
           <DataTable
             className="student-enroll-datatable"
-            columns={columns}
+            columns={tableColumns}
             data={filteredItems}
             pagination
-            // onRowClicked={(row) => navigate(`/dashboard/messages`)}
+            paginationPerPage={rowsPerPage}
+            paginationRowsPerPageOptions={[10, 20, 50, 100]}
+            onChangePage={(page) => setCurrentPage(page)}
+            onChangeRowsPerPage={(newPerPage, page) => {
+              setRowsPerPage(newPerPage);
+              setCurrentPage(page);
+            }}
             highlightOnHover={false}
             responsive
           />
@@ -510,7 +504,6 @@ className="d-flex gap-2 justify-content-end flex-wrap flex-md-nowrap"
             <Modal.Title>{isEdit ? "Edit Student" : "Add Student"}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            {/* Name, Email, Phone, Courses, Password fields remain same as before */}
             <Form.Group className="mb-3">
               <Form.Label>Name <span style={{ color: "red" }}>*</span></Form.Label>
               <Form.Control type="text" name="name" value={newStudent.name} onChange={handleAddStudentChange} required />
@@ -529,13 +522,9 @@ className="d-flex gap-2 justify-content-end flex-wrap flex-md-nowrap"
             <Form.Group className="mb-3">
               <Form.Label>Manage Videos language</Form.Label>
               <Form.Text className="d-block mb-2 text-muted" style={{ fontSize: "12px" }}>
-                This student will only see Manage Videos uploaded in this language (Manage Videos page). Example: Urdu for Pakistani students, English or Arabic as needed.
+                This student will only see Manage Videos uploaded in this language.
               </Form.Text>
-              <Form.Select
-                name="videoLanguage"
-                value={newStudent.videoLanguage}
-                onChange={handleAddStudentChange}
-              >
+              <Form.Select name="videoLanguage" value={newStudent.videoLanguage} onChange={handleAddStudentChange}>
                 {videoLanguageOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
@@ -554,9 +543,7 @@ className="d-flex gap-2 justify-content-end flex-wrap flex-md-nowrap"
                 options={subjectOptions}
                 value={subjectOptions.filter((option) => newStudent.subject.includes(option.value))}
                 menuPortalTarget={document.body}
-                styles={{
-                  menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                }}
+                styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
                 onChange={(selected) =>
                   setNewStudent((prev) => ({
                     ...prev,
@@ -590,104 +577,60 @@ className="d-flex gap-2 justify-content-end flex-wrap flex-md-nowrap"
         </Form>
       </Modal>
 
-     {/* Provide Google Meet Link Modal */}
-<Modal
-  show={showLinkModal}
-  onHide={() => {
-    setShowLinkModal(false);
-    setMeetLink("");
-    setProvideLinkId("");
-  }}
-  centered
-  backdrop="static"
-  keyboard={false}
->
-  <Modal.Header closeButton>
-    <Modal.Title>Provide Google Meet Link</Modal.Title>
-  </Modal.Header>
-  <Modal.Body>
-    <p style={{ fontSize: "14px", color: "#555" }}>
-      Enter or update the Google Meet link for this student.
-    </p>
-
-    <Form.Group className="mb-3">
-      <Form.Label>Google Meet Link</Form.Label>
-      <Form.Control
-        type="url"
-        placeholder="https://meet.google.com/xxxxxxxxxxx"
-        value={meetLink}
-        onChange={(e) => setMeetLink(e.target.value)}
-        disabled={loadingLink}
-      />
-      {loadingLink && (
-        <small className="text-muted">Loading existing link...</small>
-      )}
-    </Form.Group>
-
-    {/* <p
-      className="blink-text"
-      style={{
-        fontWeight: "bold",
-        color: meetLink ? "green" : "red",
-        fontSize: "14px",
-        animation: "blink 1s infinite",
-      }}
-    >
-      {meetLink
-        ? "You have already sent the Google Meet link"
-        : "No link sent yet"}
-    </p> */}
-  </Modal.Body>
-  <Modal.Footer>
-    <Button
-      variant="secondary"
-      onClick={() => {
-        setShowLinkModal(false);
-        setMeetLink("");
-      }}
-    >
-      Cancel
-    </Button>
-  
-    <Button
-      variant="danger"
-      onClick={handleDeleteLink}
-      disabled={loadingLink || !provideLinkId}
-    >
-     Delete Link
-    </Button>
-    <Button
-    variant="primary"
-    onClick={() => {
-      // ✅ Google Meet link validation
-      const meetRegex = /^https:\/\/meet\.google\.com\/[a-zA-Z0-9-]+$/;
-
-      if (!meetRegex.test(meetLink.trim())) {
-        toast.error(
-          "Invalid Google Meet link! Please enter a valid link like https://meet.google.com/xxxxxxx"
-        );
-        return;
-      }
-
-      handleSubmitLink();
-    }}
-    disabled={loadingLink || !meetLink.trim()}
-  >
-    {loadingLink ? "Loading..." : "Send Link"}
-  </Button>
-  </Modal.Footer>
-
-  {/* CSS for blink */}
-  <style>
-    {`
-      @keyframes blink {
-        0% { opacity: 1; }
-        50% { opacity: 0; }
-        100% { opacity: 1; }
-      }
-    `}
-  </style>
-</Modal>
+      {/* Provide Google Meet Link Modal */}
+      <Modal
+        show={showLinkModal}
+        onHide={() => {
+          setShowLinkModal(false);
+          setMeetLink("");
+          setProvideLinkId("");
+        }}
+        centered
+        backdrop="static"
+        keyboard={false}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Provide Google Meet Link</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p style={{ fontSize: "14px", color: "#555" }}>
+            Enter or update the Google Meet link for this student.
+          </p>
+          <Form.Group className="mb-3">
+            <Form.Label>Google Meet Link</Form.Label>
+            <Form.Control
+              type="url"
+              placeholder="https://meet.google.com/xxxxxxxxxxx"
+              value={meetLink}
+              onChange={(e) => setMeetLink(e.target.value)}
+              disabled={loadingLink}
+            />
+            {loadingLink && <small className="text-muted">Loading existing link...</small>}
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => { setShowLinkModal(false); setMeetLink(""); }}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleDeleteLink} disabled={loadingLink || !provideLinkId}>
+            Delete Link
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              const meetRegex = /^https:\/\/meet\.google\.com\/[a-zA-Z0-9-]+$/;
+              if (!meetRegex.test(meetLink.trim())) {
+                toast.error("Invalid Google Meet link! Please enter a valid link.");
+                return;
+              }
+              handleSubmitLink();
+            }}
+            disabled={loadingLink || !meetLink.trim()}
+          >
+            {loadingLink ? "Loading..." : "Send Link"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 }

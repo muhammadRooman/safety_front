@@ -13,6 +13,7 @@ import {
   FaInfoCircle,
   FaBriefcase,
   FaVideo,
+  FaAward,
 } from 'react-icons/fa';
 import { HiUsers } from 'react-icons/hi2';
 import { logout } from '../redux/Auth/AuthSlice';
@@ -337,6 +338,8 @@ const Sidebar = () => {
                 <FaFilm   size={25}  className="me-3" /> {t('COURSE_VIDEOS')}
               </Nav.Link>
 
+             
+
               <Nav.Link
                 as={Link}
                 to="/dashboard/ohs_course_manage"
@@ -362,22 +365,7 @@ const Sidebar = () => {
               >
                 <FaChalkboardTeacher size={25} className="me-3" /> {t('TEACHERS')}
               </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/dashboard/post-job"
-                className={`sidebar-link ${isActive('/dashboard/post-job') ? 'active' : ''}`}
-                onClick={closeSidebar}
-              >
-                <FaBriefcase size={22} className="me-3" /> Post a Job
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/dashboard/all-jobs"
-                className={`sidebar-link ${isActive('/dashboard/all-jobs') ? 'active' : ''}`}
-                onClick={closeSidebar}
-              >
-                <FaBriefcase size={22} className="me-3" /> All Jobs
-              </Nav.Link>
+            
 
             
 
@@ -411,8 +399,30 @@ const Sidebar = () => {
               >
                 <FaInfoCircle size={22} className="me-3" /> Teacher Info
               </Nav.Link>
-
-
+  <Nav.Link
+                as={Link}
+                to="/dashboard/post-job"
+                className={`sidebar-link ${isActive('/dashboard/post-job') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaBriefcase size={22} className="me-3" /> Post a Job
+              </Nav.Link>
+              <Nav.Link
+                as={Link}
+                to="/dashboard/all-jobs"
+                className={`sidebar-link ${isActive('/dashboard/all-jobs') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaBriefcase size={22} className="me-3" /> All Jobs
+              </Nav.Link>
+              <Nav.Link
+                as={Link}
+                to="/dashboard/certificates"
+                className={`sidebar-link ${isActive('/dashboard/certificates') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaAward size={25} className="me-3" /> Certificates
+              </Nav.Link>
             </>
           )}
 
@@ -426,6 +436,7 @@ const Sidebar = () => {
               >
                 <FaFilm size={25} className="me-3" /> {t('MY_VIDEOS')}
               </Nav.Link>
+              
               <Nav.Link
                 as={Link}
                 to="/dashboard/student_live_class"
@@ -481,7 +492,7 @@ const Sidebar = () => {
                   </Badge>
                 )}
               </Nav.Link>
-
+              
               <Nav.Link
                 as={Link}
                 to="/dashboard/teacher-info"
@@ -489,6 +500,14 @@ const Sidebar = () => {
                 onClick={closeSidebar}
               >
                 <FaInfoCircle size={22} className="me-3" /> Teacher Info
+              </Nav.Link>
+              <Nav.Link
+                as={Link}
+                to="/dashboard/my-certificates"
+                className={`sidebar-link ${isActive('/dashboard/my-certificates') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaAward size={25} className="me-3" /> Certificates
               </Nav.Link>
             </>
           )}

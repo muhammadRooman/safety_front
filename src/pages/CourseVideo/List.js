@@ -21,6 +21,7 @@ import {
   Badge,
   Tabs,
   Tab,
+  ProgressBar,
 } from "react-bootstrap";
 
 const COURSE_TYPES = [
@@ -36,6 +37,23 @@ const VIDEO_LANGUAGES = [
   { value: "Arabic", label: "Arabic" },
   { value: "Pashto", label: "Pashto" },
 ];
+
+/** Above this size, upload in chunks (must stay under server COURSE_VIDEO_CHUNK_MAX_BYTES, default 24MB). */
+const CHUNK_THRESHOLD_BYTES = 6 * 1024 * 1024;
+const CHUNK_SIZE_BYTES = 6 * 1024 * 1024;
+
+function formatBytes(n) {
+  if (n == null || !Number.isFinite(n) || n < 0) return "—";
+  const units = ["B", "KB", "MB", "GB"];
+  let v = n;
+  let i = 0;
+  while (v >= 1024 && i < units.length - 1) {
+    v /= 1024;
+    i += 1;
+  }
+  const decimals = i === 0 || v >= 100 ? 0 : v >= 10 ? 1 : 2;
+  return `${v.toFixed(decimals)} ${units[i]}`;
+}
 
 export default function CourseVideoList() {
   const navigate = useNavigate();
@@ -54,6 +72,9 @@ export default function CourseVideoList() {
   const [videoFile, setVideoFile] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [uploadProgressPct, setUploadProgressPct] = useState(null);
+  /** Extra lines for loader: bytes, chunk index, phase label */
+  const [uploadDetail, setUploadDetail] = useState(null);
 
   // Delete Modal States
   const [delId, setDelId] = useState(null);
@@ -64,6 +85,9 @@ export default function CourseVideoList() {
   const [selectedVideo, setSelectedVideo] = useState("");
 
   const API_BASE = process.env.REACT_APP_BASE_ADMIN_API;
+
+  /** Avoid global full-screen loader on this page (local progress + toasts instead). */
+  const noGlobalLoader = { showGlobalLoader: false };
 
   // Fetch videos
   const fetchVideos = async () => {
@@ -76,6 +100,7 @@ export default function CourseVideoList() {
 
       const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
+        ...noGlobalLoader,
       });
       setVideos(res.data);
     } catch (err) {
@@ -103,6 +128,14 @@ export default function CourseVideoList() {
     }
 
     setLoading(true);
+    setUploadProgressPct(0);
+    setUploadDetail({
+      phase: "preparing",
+      loadedBytes: 0,
+      totalBytes: videoFile?.size ?? 0,
+      chunkCurrent: null,
+      totalChunks: null,
+    });
     try {
       const formData = new FormData();
       const lang = String(uploadForm.language || "English").trim();
@@ -117,17 +150,150 @@ export default function CourseVideoList() {
       // Do not set Content-Type manually — browser/axios must add multipart boundary.
       const authHeaders = { Authorization: `Bearer ${token}` };
       const langQ = encodeURIComponent(lang);
+      const longRequest = {
+        headers: authHeaders,
+        timeout: 0,
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+        ...noGlobalLoader,
+      };
 
       if (editMode && editId) {
-        await axios.put(
-          `${API_BASE}/admin/courseVideo/${editId}?language=${langQ}`,
-          formData,
-          { headers: authHeaders }
-        );
+        await axios.put(`${API_BASE}/admin/courseVideo/${editId}?language=${langQ}`, formData, {
+          ...longRequest,
+          onUploadProgress: (ev) => {
+            if (!ev.total) return;
+            const pct = Math.round((ev.loaded / ev.total) * 100);
+            setUploadProgressPct(pct);
+            setUploadDetail({
+              phase: "upload",
+              loadedBytes: ev.loaded,
+              totalBytes: ev.total,
+              chunkCurrent: null,
+              totalChunks: null,
+            });
+          },
+        });
         toast.success("Video updated successfully");
+      } else if (videoFile && videoFile.size > CHUNK_THRESHOLD_BYTES) {
+        const totalSize = videoFile.size;
+        const totalChunks = Math.ceil(totalSize / CHUNK_SIZE_BYTES);
+        setUploadDetail({
+          phase: "parts",
+          loadedBytes: 0,
+          totalBytes: totalSize,
+          chunkCurrent: 0,
+          totalChunks,
+        });
+        const { data: session } = await axios.post(
+          `${API_BASE}/admin/courseVideo/chunk-init`,
+          {
+            fileName: videoFile.name,
+            totalSize,
+            totalChunks,
+            title: uploadForm.title,
+            courseType: uploadForm.courseType,
+            language: lang,
+            videoLang: lang,
+          },
+          {
+            headers: { ...authHeaders, "Content-Type": "application/json" },
+            timeout: 60000,
+            ...noGlobalLoader,
+          }
+        );
+        const { uploadId } = session;
+        for (let i = 0; i < totalChunks; i++) {
+          const start = i * CHUNK_SIZE_BYTES;
+          const end = Math.min(start + CHUNK_SIZE_BYTES, totalSize);
+          const blob = videoFile.slice(start, end);
+          const chunkFd = new FormData();
+          chunkFd.append("chunk", blob, `part-${i}`);
+          await axios.post(`${API_BASE}/admin/courseVideo/chunk/${uploadId}/${i}`, chunkFd, {
+            ...longRequest,
+            onUploadProgress: (ev) => {
+              if (!ev.total) return;
+              const loadedSoFar = Math.min(start + ev.loaded, totalSize);
+              const pct = Math.round((loadedSoFar / totalSize) * 100);
+              setUploadProgressPct(Math.min(97, pct));
+              setUploadDetail({
+                phase: "parts",
+                loadedBytes: loadedSoFar,
+                totalBytes: totalSize,
+                chunkCurrent: i + 1,
+                totalChunks,
+              });
+            },
+          });
+          setUploadProgressPct(Math.round(((i + 1) / totalChunks) * 97));
+          setUploadDetail({
+            phase: "parts",
+            loadedBytes: end,
+            totalBytes: totalSize,
+            chunkCurrent: i + 1,
+            totalChunks,
+          });
+        }
+        setUploadDetail({
+          phase: "merging",
+          loadedBytes: totalSize,
+          totalBytes: totalSize,
+          chunkCurrent: totalChunks,
+          totalChunks,
+        });
+        setUploadProgressPct(98);
+        const { data: created } = await axios.post(
+          `${API_BASE}/admin/courseVideo/chunk-complete`,
+          { uploadId },
+          { headers: { ...authHeaders, "Content-Type": "application/json" }, timeout: 0, ...noGlobalLoader }
+        );
+        if (pdfFile && created?.video?._id) {
+          setUploadDetail({
+            phase: "pdf",
+            loadedBytes: 0,
+            totalBytes: pdfFile.size,
+            chunkCurrent: null,
+            totalChunks: null,
+          });
+          setUploadProgressPct(99);
+          const pdfFd = new FormData();
+          pdfFd.append("title", uploadForm.title);
+          pdfFd.append("courseType", uploadForm.courseType);
+          pdfFd.append("language", lang);
+          pdfFd.append("videoLang", lang);
+          pdfFd.append("pdf", pdfFile);
+          await axios.put(`${API_BASE}/admin/courseVideo/${created.video._id}?language=${langQ}`, pdfFd, {
+            ...longRequest,
+            onUploadProgress: (ev) => {
+              if (!ev.total) return;
+              setUploadProgressPct(98 + Math.round((ev.loaded / ev.total) * 2));
+              setUploadDetail({
+                phase: "pdf",
+                loadedBytes: ev.loaded,
+                totalBytes: ev.total,
+                chunkCurrent: null,
+                totalChunks: null,
+              });
+            },
+          });
+        }
+        setUploadProgressPct(100);
+        toast.success("Video uploaded successfully");
       } else {
         await axios.post(`${API_BASE}/admin/courseVideo?language=${langQ}`, formData, {
-          headers: authHeaders,
+          ...longRequest,
+          onUploadProgress: (ev) => {
+            if (!ev.total) return;
+            const pct = Math.round((ev.loaded / ev.total) * 100);
+            setUploadProgressPct(pct);
+            setUploadDetail({
+              phase: "upload",
+              loadedBytes: ev.loaded,
+              totalBytes: ev.total,
+              chunkCurrent: null,
+              totalChunks: null,
+            });
+          },
         });
         toast.success("Video uploaded successfully");
       }
@@ -139,6 +305,8 @@ export default function CourseVideoList() {
       toast.error(err.response?.data?.message || (editMode ? "Update failed" : "Upload failed"));
     } finally {
       setLoading(false);
+      setUploadProgressPct(null);
+      setUploadDetail(null);
     }
   };
 
@@ -156,6 +324,7 @@ export default function CourseVideoList() {
     try {
       await axios.delete(`${API_BASE}/admin/courseVideo/${delId}`, {
         headers: { Authorization: `Bearer ${token}` },
+        ...noGlobalLoader,
       });
       toast.success("Video deleted successfully");
       setShowDelModal(false);
@@ -313,13 +482,13 @@ export default function CourseVideoList() {
       {/* Breadcrumb */}
       <Breadcrumb>
         <Breadcrumb.Item onClick={() => navigate("/dashboard")}>Dashboard</Breadcrumb.Item>
-        <Breadcrumb.Item active>Manage Videos</Breadcrumb.Item>
+        <Breadcrumb.Item active>Course Videos</Breadcrumb.Item>
       </Breadcrumb>
 
       {/* Header 
       <Row className="mb-4 justify-content-between align-items-center">
         <Col>
-          <h3 className="mb-0 fw-semibold">Manage Videos</h3>
+          <h3 className="mb-0 fw-semibold">Course Videos</h3>
         </Col>
         <Col md="auto" className="d-flex gap-2">
           <Form.Select
@@ -350,7 +519,7 @@ export default function CourseVideoList() {
 
       <Row className="mb-4 align-items-center justify-content-between">
       <Col xs={12} md="auto" className="mb-2 mb-md-0">
-        <h3 className=" mb-0 fw-semibold name_heading">Manage Videos</h3>
+        <h3 className=" mb-0 fw-semibold name_heading">Course Videos</h3>
       </Col>
     <Col
       xs={12}
@@ -439,9 +608,17 @@ onChange={(e) => setFilterCourseType(e.target.value)}
       </Card>
 
       {/* Upload / Edit Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered backdrop="static" keyboard={false}>
+      <Modal
+        show={showModal}
+        onHide={() => {
+          if (!loading) setShowModal(false);
+        }}
+        centered
+        backdrop="static"
+        keyboard={false}
+      >
         <Form onSubmit={handleSubmit}>
-          <Modal.Header closeButton>
+          <Modal.Header closeButton={!loading}>
             <Modal.Title>{editMode ? "Edit Video" : "Upload New Video"}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
@@ -500,7 +677,53 @@ onChange={(e) => setFilterCourseType(e.target.value)}
                 onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
                 required={!editMode}
               />
+              <Form.Text className="text-muted d-block" style={{ fontSize: 12 }}>
+                Files above about 6MB are uploaded in smaller parts and merged on the server so large videos complete
+                more reliably.
+              </Form.Text>
             </Form.Group>
+
+            {loading && (
+              <div className="rounded border bg-light p-3 mb-1">
+                <div className="fw-semibold small mb-2">
+                  {uploadDetail?.phase === "merging"
+                    ? "Merging video on server…"
+                    : uploadDetail?.phase === "pdf"
+                      ? "Uploading PDF…"
+                      : uploadDetail?.phase === "preparing"
+                        ? "Preparing upload…"
+                        : editMode
+                          ? "Updating…"
+                          : "Uploading video…"}
+                </div>
+                <ProgressBar
+                  animated
+                  striped
+                  now={uploadProgressPct ?? 0}
+                  label={`${uploadProgressPct ?? 0}%`}
+                  style={{ minHeight: "22px" }}
+                />
+                <div className="small text-muted mt-2 mb-0">
+                  {uploadDetail?.phase === "merging" && (
+                    <span>Almost done — combining all parts into one file.</span>
+                  )}
+                  {uploadDetail?.phase === "pdf" &&
+                    uploadDetail.totalBytes > 0 &&
+                    `${formatBytes(uploadDetail.loadedBytes)} / ${formatBytes(uploadDetail.totalBytes)} (PDF)`}
+                  {(uploadDetail?.phase === "upload" || uploadDetail?.phase === "parts") &&
+                    uploadDetail.totalBytes > 0 && (
+                      <span>
+                        {formatBytes(uploadDetail.loadedBytes)} / {formatBytes(uploadDetail.totalBytes)}
+                        {uploadDetail.totalChunks != null &&
+                          uploadDetail.chunkCurrent != null &&
+                          ` · Part ${uploadDetail.chunkCurrent} of ${uploadDetail.totalChunks}`}
+                      </span>
+                    )}
+                  {uploadDetail?.phase === "preparing" && <span>Starting…</span>}
+                </div>
+              </div>
+            )}
+
             <Form.Group className="mb-3">
               <Form.Label>
                 Course File (PDF) {editMode ? "(Optional)" : "(Optional)"}
@@ -516,11 +739,19 @@ onChange={(e) => setFilterCourseType(e.target.value)}
             </Form.Group>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowModal(false)}>
+            <Button variant="secondary" onClick={() => setShowModal(false)} disabled={loading}>
               Cancel
             </Button>
             <Button type="submit" className="buttonColor" disabled={loading}>
-              {loading ? (editMode ? "Updating..." : "Uploading...") : editMode ? "Update" : "Upload"}
+              {loading
+                ? editMode
+                  ? "Updating..."
+                  : uploadProgressPct != null
+                    ? `Uploading… ${uploadProgressPct}%`
+                    : "Uploading..."
+                : editMode
+                  ? "Update"
+                  : "Upload"}
             </Button>
           </Modal.Footer>
         </Form>

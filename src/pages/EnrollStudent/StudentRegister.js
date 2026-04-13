@@ -62,7 +62,7 @@ function StudentRegister() {
       if (response?.data?.message === 'User registered successfully') {
         toast.success(response.data.message);
         reset();
-        navigate('/login');
+        navigate('/dashboard/students_enroll');
       } else {
         toast.error(response?.data?.message || 'Signup failed');
       }

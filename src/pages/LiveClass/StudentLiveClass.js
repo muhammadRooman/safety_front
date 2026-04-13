@@ -107,7 +107,10 @@ export default function StudentLiveClass() {
     try {
       const res = await axios.get(
         `${process.env.REACT_APP_BASE_ADMIN_API}/admin/live-class/student`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          showGlobalLoader: false,
+        }
       );
       setAllClasses(Array.isArray(res.data?.data) ? res.data.data : []);
     } catch (err) {
@@ -116,10 +119,14 @@ export default function StudentLiveClass() {
     }
   };
 
-  const silentRefresh = async () => {
+  /** Manual refresh only — shows “Checking…” on the button (no full-screen main loader). */
+  const manualRefresh = async () => {
     setRefreshing(true);
-    await fetchAllClasses();
-    setRefreshing(false);
+    try {
+      await fetchAllClasses();
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   useEffect(() => {
@@ -132,7 +139,10 @@ export default function StudentLiveClass() {
 
     initialFetch();
 
-    const interval = setInterval(silentRefresh, 15000);
+    // Poll in background: no global loader, no button “Checking…” flicker every 15s.
+    const interval = setInterval(() => {
+      fetchAllClasses();
+    }, 15000);
     return () => clearInterval(interval);
   }, [token]);
 
@@ -153,7 +163,7 @@ export default function StudentLiveClass() {
         <Button
           variant="outline-primary"
           size="sm"
-          onClick={silentRefresh}
+          onClick={manualRefresh}
           disabled={refreshing}
         >
           {refreshing ? "Checking..." : "Refresh"}
