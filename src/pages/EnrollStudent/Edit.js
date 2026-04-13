@@ -578,59 +578,92 @@ export default function StudentEnrollList() {
       </Modal>
 
       {/* Provide Google Meet Link Modal */}
-      <Modal
-        show={showLinkModal}
-        onHide={() => {
-          setShowLinkModal(false);
-          setMeetLink("");
-          setProvideLinkId("");
-        }}
-        centered
-        backdrop="static"
-        keyboard={false}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Provide Google Meet Link</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p style={{ fontSize: "14px", color: "#555" }}>
-            Enter or update the Google Meet link for this student.
-          </p>
-          <Form.Group className="mb-3">
-            <Form.Label>Google Meet Link</Form.Label>
-            <Form.Control
-              type="url"
-              placeholder="https://meet.google.com/xxxxxxxxxxx"
-              value={meetLink}
-              onChange={(e) => setMeetLink(e.target.value)}
-              disabled={loadingLink}
-            />
-            {loadingLink && <small className="text-muted">Loading existing link...</small>}
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => { setShowLinkModal(false); setMeetLink(""); }}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={handleDeleteLink} disabled={loadingLink || !provideLinkId}>
-            Delete Link
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              const meetRegex = /^https:\/\/meet\.google\.com\/[a-zA-Z0-9-]+$/;
-              if (!meetRegex.test(meetLink.trim())) {
-                toast.error("Invalid Google Meet link! Please enter a valid link.");
-                return;
-              }
-              handleSubmitLink();
-            }}
-            disabled={loadingLink || !meetLink.trim()}
-          >
-            {loadingLink ? "Loading..." : "Send Link"}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+     {/* Provide Google Meet Link Modal */}
+<Modal
+  show={showLinkModal}
+  onHide={() => {
+    setShowLinkModal(false);
+    setMeetLink("");
+    setProvideLinkId("");
+  }}
+  centered
+  backdrop="static"
+  keyboard={false}
+>
+  <Modal.Header closeButton>
+    <Modal.Title>Provide Google Meet Link</Modal.Title>
+  </Modal.Header>
+
+  <Modal.Body>
+    <p style={{ fontSize: "14px", color: "#555" }}>
+      Enter or update the Google Meet link for this student.
+    </p>
+
+    <Form.Group className="mb-3">
+      <Form.Label>Google Meet Link</Form.Label>
+      <Form.Control
+        type="url"
+        placeholder="https://meet.google.com/xxxxxxxxxxx"
+        value={meetLink}
+        onChange={(e) => setMeetLink(e.target.value)}
+        disabled={loadingLink}
+      />
+
+      {loadingLink && (
+        <small className="text-muted">Loading existing link...</small>
+      )}
+    </Form.Group>
+  </Modal.Body>
+
+  <Modal.Footer>
+    {/* Cancel */}
+    <Button
+      variant="secondary"
+      onClick={() => {
+        setShowLinkModal(false);
+        setMeetLink("");
+      }}
+    >
+      Cancel
+    </Button>
+
+    {/* Delete */}
+    <Button
+      variant="danger"
+      onClick={handleDeleteLink}
+      disabled={loadingLink || !provideLinkId}
+    >
+      Delete Link
+    </Button>
+
+    {/* Open Google Meet Link */}
+    <Button
+      variant="success"
+      onClick={() => window.open(meetLink, "_blank")}
+      disabled={!meetLink.trim()}
+    >
+      Open Link
+    </Button>
+
+    {/* Send Link */}
+    <Button
+      variant="primary"
+      onClick={() => {
+        const meetRegex = /^https:\/\/meet\.google\.com\/[a-zA-Z0-9-]+$/;
+
+        if (!meetRegex.test(meetLink.trim())) {
+          toast.error("Invalid Google Meet link! Please enter a valid link.");
+          return;
+        }
+
+        handleSubmitLink();
+      }}
+      disabled={loadingLink || !meetLink.trim()}
+    >
+      {loadingLink ? "Loading..." : "Send Link"}
+    </Button>
+  </Modal.Footer>
+</Modal>
     </Container>
   );
 }

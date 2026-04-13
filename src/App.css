@@ -1402,14 +1402,14 @@ button.btn.btn-sm.student-table-action-btn.ee {
 }
 
 .bubble-out {
-  background: #0d6efd;
-  color: white;
+     background: #fff3ca;
+    color: #31434d;
   border-bottom-right-radius: 4px;
 }
 
 .bubble-in {
   background: white;
-  color: #333;
+color: #31434d;
   border-bottom-left-radius: 4px;
 }
 
