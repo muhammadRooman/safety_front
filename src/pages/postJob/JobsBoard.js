@@ -226,22 +226,26 @@ export default function JobsBoard() {
                         </div>
                     
                         {/* Status */}
-                        <div
-                          className="fw-bold"
-                          style={{
-                            color:
-                              new Date(job.deadline) < new Date()
-                                ? "red"
-                                : "green",
-                          }}
-                        >
-                          {new Date(job.deadline) < new Date()
-                            ? "Expired"
-                            : `${Math.ceil(
-                                (new Date(job.deadline) - new Date()) /
-                                  (1000 * 60 * 60 * 24)
-                              )} day(s) left`}
-                        </div>
+                       <div
+  className="fw-bold"
+  style={{
+    color:
+      new Date(job.deadline).toDateString() === new Date().toDateString()
+        ? "orange"
+        : new Date(job.deadline) < new Date()
+        ? "red"
+        : "green",
+  }}
+>
+  {new Date(job.deadline).toDateString() === new Date().toDateString()
+    ? "Today 12:00 AM"
+    : new Date(job.deadline) < new Date()
+    ? "Expired"
+    : `${Math.ceil(
+        (new Date(job.deadline) - new Date()) /
+          (1000 * 60 * 60 * 24)
+      )} day(s) left`}
+</div>
                       </div>
                     )}
 

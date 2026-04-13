@@ -212,7 +212,7 @@ const Dashboard = () => {
                     <HiUsers size={40} className="mb-2 dashboard-card-icon" />
                     <Card.Title>{t("enroll_student")}</Card.Title>
                     <Card.Text>{t("enroll_student_desc")}</Card.Text>
-                    <Card.Text>{studentsCount}</Card.Text>
+                    <Card.Text>{studentsCount-1}</Card.Text>
                   </Card.Body>
                 </Card>
               </Col>
