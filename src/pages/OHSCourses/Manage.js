@@ -553,7 +553,7 @@ const getImageUrl = (imagePath) => {
       />
       
       {/* New Image Preview - Center + Last */}
-      {editImageFile && (
+      {/* {editImageFile && (
         <div className="mt-4 text-center">
           <p className="small text-success fw-medium mb-2">New Image Preview:</p>
           <div className="d-flex justify-content-center">
@@ -570,7 +570,7 @@ const getImageUrl = (imagePath) => {
             />
           </div>
         </div>
-      )}
+      )} */}
     </Form.Group>
   </Modal.Body>
 
