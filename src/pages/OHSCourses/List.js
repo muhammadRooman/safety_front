@@ -11,7 +11,9 @@ const List = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState("");
+
   const API_BASE = process.env.REACT_APP_BASE_ADMIN_API;
+  const API_upload = process.env.REACT_APP_BASE_uploads;
 
   const DEFAULT_COURSES = [
     "NEBOSH",
@@ -27,6 +29,7 @@ const List = () => {
 
   const DEFAULT_DESCRIPTION =
     "This course is designed to enhance your skills and knowledge in occupational health & safety.";
+
   const DEFAULT_CONTACT = {
     name: "Farooq Khan (CEO)",
     email: "muhammadrooman5@gmail.com",
@@ -39,23 +42,59 @@ const List = () => {
   const [contact, setContact] = useState(DEFAULT_CONTACT);
   const [loading, setLoading] = useState(false);
 
+  // Normalize
+  const normalizeCourse = (course) => {
+    if (typeof course === "string") {
+      return { name: course, image: "" };
+    }
+    return {
+      name: course?.name || "",
+      image: course?.image || "",
+    };
+  };
+
+  // Image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath || imagePath.trim() === "") {
+      return "/newcourse.jpg";
+    }
+
+    if (imagePath.startsWith("http")) {
+      return imagePath;
+    }
+
+    let clean = imagePath;
+    if (clean.startsWith("/uploads")) {
+      clean = clean.replace("/uploads", "");
+    }
+    if (!clean.startsWith("/")) {
+      clean = "/" + clean;
+    }
+
+    return `${API_upload}${clean}`;
+  };
+
   useEffect(() => {
     const fetchConfig = async () => {
       if (!token) return;
       setLoading(true);
+
       try {
         const res = await axios.get(`${API_BASE}/admin/ohs-courses`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const nextCourses = Array.isArray(res.data?.courses) ? res.data.courses : DEFAULT_COURSES;
-        const nextDescription =
-          typeof res.data?.description === "string" && res.data.description.trim()
-            ? res.data.description
-            : DEFAULT_DESCRIPTION;
+        let nextCourses = [];
+
+        if (Array.isArray(res.data?.courses)) {
+          nextCourses = res.data.courses.map((c) =>
+            typeof c === "string" ? { name: c, image: "" } : c
+          );
+        }
 
         setCourses(nextCourses.length ? nextCourses : DEFAULT_COURSES);
-        setDescription(nextDescription);
+        setDescription(res.data?.description || DEFAULT_DESCRIPTION);
+
         setContact({
           name: res.data?.name || DEFAULT_CONTACT.name,
           email: res.data?.email || DEFAULT_CONTACT.email,
@@ -63,7 +102,7 @@ const List = () => {
           address: res.data?.address || DEFAULT_CONTACT.address,
         });
       } catch (err) {
-        toast.error(err.response?.data?.message || "Failed to load OHS courses");
+        toast.error("Failed to load courses");
         setCourses(DEFAULT_COURSES);
         setDescription(DEFAULT_DESCRIPTION);
         setContact(DEFAULT_CONTACT);
@@ -73,11 +112,10 @@ const List = () => {
     };
 
     fetchConfig();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const chunkedCourses = useMemo(() => {
-    const list = Array.isArray(courses) ? courses : [];
+    const list = courses.map(normalizeCourse);
     const chunks = [];
     for (let i = 0; i < list.length; i += 3) {
       chunks.push(list.slice(i, i + 3));
@@ -92,108 +130,93 @@ const List = () => {
 
   return (
     <Container className="py-4">
-      {/* Breadcrumb */}
+
       <Breadcrumb>
-        <Breadcrumb.Item onClick={() => navigate("/dashboard")}>Dashboard</Breadcrumb.Item>
+        <Breadcrumb.Item onClick={() => navigate("/dashboard")}>
+          Dashboard
+        </Breadcrumb.Item>
         <Breadcrumb.Item active>OHS All Courses</Breadcrumb.Item>
       </Breadcrumb>
 
-      <h3 className="mb-4 fw-semibold name_heading">OHS Academy - All Courses</h3>
+      <h3 className="mb-4 fw-semibold">OHS Academy - All Courses</h3>
 
       {loading ? (
         <div className="text-center py-5">Loading...</div>
-      ) : chunkedCourses.length ? (
-        chunkedCourses.map((chunk, rowIndex) => (
-          <Row className="mb-3 g-3" key={rowIndex}>
-            {chunk.map((course, colIndex) => (
-              <Col xs={12} sm={6} md={4} key={colIndex} >
-                <Card  className="course-card shadow-sm border-0 border-start border-warning border-4"
-                style={{ borderRadius: "12px" }}
-                 
-                  onClick={() => handleCardClick(course)}
-                >
-                  <Card.Body className="fw-bold">{course}</Card.Body>
-                </Card>
-              </Col>
-            ))}
+      ) : (
+        chunkedCourses.map((chunk, i) => (
+          <Row key={i} className="mb-3 g-3">
+            {chunk.map((course, j) => {
+              const name = course.name;
+              const imageUrl = getImageUrl(course.image);
+
+              return (
+                <Col xs={12} sm={6} md={4} key={j}>
+                  <Card
+                    className="shadow-sm border-0 border-start border-warning border-4 course-card"
+                    style={{ borderRadius: "12px", cursor: "pointer" }}
+                    onClick={() => handleCardClick(name)}
+                  >
+
+                    {/* IMAGE TOP */}
+                    <div
+                      style={{
+                        height: "180px",
+                        background: "#f8f9fa",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={name}
+                        style={{
+                          maxWidth: "100%",
+                          maxHeight: "100%",
+                          objectFit: "contain",
+                        }}
+                        onError={(e) => {
+                          e.target.src = "/newcourse.jpg";
+                        }}
+                      />
+                    </div>
+
+                    {/* TEXT BOTTOM */}
+                    <Card.Body className="text-center fw-bold py-2">
+                      {name}
+                    </Card.Body>
+
+                  </Card>
+                </Col>
+              );
+            })}
           </Row>
         ))
-      ) : (
-        <div className="alert alert-warning">No OHS courses found.</div>
       )}
-      <h5 className="course_information">Course Information</h5>
+
+      {/* DESCRIPTION */}
+      <h5 className="mt-3">Course Information</h5>
       <div className="description-scroll-box">
-      <p className="mb-0">{description}</p>
-    </div>
-      {/* Modal for selected course */}
-      <Modal
-        show={showModal}
-        onHide={() => setShowModal(false)}
-        centered
-        size="md"
-        scrollable
-        backdrop="static"
-        keyboard={false}
-      >
-        <Modal.Header closeButton className="bg-warning text-black">
-          <Modal.Title>Course: {selectedCourse}</Modal.Title>
+        <p className="mb-0">{description}</p>
+      </div>
+
+      {/* MODAL */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton className="bg-warning">
+          <Modal.Title>{selectedCourse}</Modal.Title>
         </Modal.Header>
+
         <Modal.Body>
-          <h5 className="course_information">Course Information</h5>
-          <div className="description-scroll-box">
-            <p className="mb-0">{description}</p>
-          </div>
+          <p>{description}</p>
+
           <hr />
-          <h6>Contact Details</h6>
-          <div
-            style={{
-              backgroundColor: " #fff3cd",
-              color: "black",
-              padding: "8px",
-              borderRadius: "4px",
-              marginBottom: "5px",
-            }}
-          >
-            <strong>Name:</strong> {contact.name}
-          </div>
-          <div
-            style={{
-              backgroundColor: " #fff3cd",
-              color: "black",
-              padding: "8px",
-              borderRadius: "4px",
-              marginBottom: "5px",
-            }}
-          >
-            <strong>Email:</strong> {contact.email}
-          </div>
-          <div
-            style={{
-              backgroundColor: " #fff3cd",
-              color: "black",
-              padding: "8px",
-              borderRadius: "4px",
-              marginBottom: "5px",
-            }}
-          >
-            <strong>Phone:</strong> {contact.phone}
-          </div>
-          <div
-            style={{
-              backgroundColor: " #fff3cd",
-              color: "black",
-              padding: "8px",
-              borderRadius: "4px",
-              marginBottom: "5px",
-            }}
-          >
-            <strong>Address:</strong> {contact.address}
-          </div>
-          <hr />
-          <p className="text-muted">
-            Interested in this course? Reach out to our team for more details and guidance. Thanks!
-          </p>
+
+          <p><b>Name:</b> {contact.name}</p>
+          <p><b>Email:</b> {contact.email}</p>
+          <p><b>Phone:</b> {contact.phone}</p>
+          <p><b>Address:</b> {contact.address}</p>
         </Modal.Body>
+
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Close
@@ -201,27 +224,24 @@ const List = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Custom CSS for hover effect */}
-      <style jsx>{`
+      {/* STYLES */}
+      <style>{`
         .course-card {
-          cursor: pointer;
-          transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s, color 0.2s;
+          transition: 0.3s;
         }
         .course-card:hover {
           transform: translateY(-5px);
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-          background-color: #ffc92a; /* Yellow background */
-          color: #000; /* Black text */
+          box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
         }
         .description-scroll-box {
           max-height: 140px;
           overflow-y: auto;
-          padding: 8px 10px;
-          border: 1px solid #e9ecef;
-          border-radius: 6px;
+          padding: 10px;
           background: #fff3cd;
+          border-radius: 6px;
         }
       `}</style>
+
     </Container>
   );
 };

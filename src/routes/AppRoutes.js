@@ -47,13 +47,14 @@ const AllJobs = lazy(() => import("../pages/postJob/AllJobs"));
 const JobsBoard = lazy(() => import("../pages/postJob/JobsBoard"));
 const AdminCertificates = lazy(() => import("../pages/Certificates/AdminCertificates"));
 const StudentCertificates = lazy(() => import("../pages/Certificates/StudentCertificates"));
+const AdminForgotPassword = lazy(() => import("../pages/forgetADmin/AdminForgotPassword"));
 
 const AppRoutes = () => {
   return (
     <Suspense fallback={<div> <RouteProgress /></div>}>
       <Routes>
         <Route
-          path="register"
+          path="register-ohs-2006"
           element={
             <PublicRoute>
               <Signup />
@@ -61,7 +62,15 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path="reset-password/:id/:token"
+          path="rooman-heacker-ohs-2006-forgot-password"
+          element={
+            <PublicRoute>
+              <AdminForgotPassword />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="reset-password-ohs-2006/:id/:token"
           element={
             <PublicRoute>
               <ResetPassword />
@@ -77,7 +86,7 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path="/forgot-password"
+          path="/forgot-password-ohs-2006"
           element={
             <PublicRoute>
               <ForgetPassword />

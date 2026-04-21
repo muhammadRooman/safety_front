@@ -795,6 +795,9 @@ onChange={(e) => setFilterCourseType(e.target.value)}
               style={{ height: "auto" }}
             >
               <source src={selectedVideo} type="video/mp4" />
+              <source src={selectedVideo} type="video/webm" />
+              <source src={selectedVideo} type="video/quicktime" />
+              <source src={selectedVideo} type="video/x-msvideo" />
               Your browser does not support the video tag.
             </video>
           )}

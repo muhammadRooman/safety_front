@@ -203,8 +203,13 @@ export default function MyVideos() {
                       controlsList="nodownload noremoteplayback"
                       disablePictureInPicture
                       style={{ width: "100%", maxHeight: 200 }}
-                      src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`}
-                    />
+                    >
+                      <source src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`} type="video/mp4" />
+                      <source src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`} type="video/webm" />
+                      <source src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`} type="video/quicktime" />
+                      <source src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`} type="video/x-msvideo" />
+                      Your browser does not support the video tag.
+                    </video>
 
                     {v.fileUrl && (
                       <div className="mt-2">
