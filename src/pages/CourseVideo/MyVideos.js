@@ -15,6 +15,7 @@ import {
   Button,
 } from "react-bootstrap";
 import { FaDownload } from "react-icons/fa";
+import { FaFilePdf } from "react-icons/fa6";
 
 export default function MyVideos() {
   const navigate = useNavigate();
@@ -107,11 +108,11 @@ export default function MyVideos() {
     <Container className="py-4">
       <Breadcrumb>
         <Breadcrumb.Item onClick={() => navigate("/dashboard")}>Dashboard</Breadcrumb.Item>
-        <Breadcrumb.Item active>My Manage Videos</Breadcrumb.Item>
+        <Breadcrumb.Item active>My Videos</Breadcrumb.Item>
       </Breadcrumb>
 
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3 className="mb-0 fw-semibold name_heading">Live Class</h3>
+        <h3 className="mb-0 fw-semibold name_heading">My Videos</h3>
         <Button
           variant="outline-primary"
           size="sm"
@@ -124,7 +125,6 @@ export default function MyVideos() {
 
       <Row className="mb-4">
         <Col>
-          <h3 className="mb-0 fw-semibold name_heading">My Manage Videos</h3>
           <p className="mb-1" style={{ color: "red" }}>
             Only videos for your assigned course(s) are shown. You cannot see other courses.
           </p>
@@ -211,10 +211,11 @@ export default function MyVideos() {
                       Your browser does not support the video tag.
                     </video>
 
-                    {v.fileUrl && (
-                      <div className="mt-2">
+                    <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {v.fileUrl && (
                         <a
                           href={`${process.env.REACT_APP_BASE_uploads}/${v.fileUrl}`}
+                          download
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{
@@ -225,11 +226,29 @@ export default function MyVideos() {
                             gap: 8,
                           }}
                         >
-                          <FaDownload />
-                          Open course file
+                          <FaFilePdf size={18} />
+                          Course File
                         </a>
-                      </div>
-                    )}
+                      )}
+                      {v.managingMaterialUrl && (
+                        <a
+                          href={`${process.env.REACT_APP_BASE_uploads}/${v.managingMaterialUrl}`}
+                          download
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: "#17a2b8",
+                            textDecoration: "none",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 8,
+                          }}
+                        >
+                          <FaFilePdf size={18} />
+                          Managing Material
+                        </a>
+                      )}
+                    </div>
                   </Card.Body>
                 </Card>
               </Col>

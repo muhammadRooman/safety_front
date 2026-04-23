@@ -157,17 +157,23 @@ const TeacherInfoList = () => {
     <Container className="py-4">
     <Breadcrumb>
     <Breadcrumb.Item onClick={() => navigate("/dashboard")}>Dashboard</Breadcrumb.Item>
-    <Breadcrumb.Item onClick={() => navigate("/dashboard/teacher-info")}>Teacher Info</Breadcrumb.Item>
+    <Breadcrumb.Item onClick={() => navigate("/dashboard/demo-class")}>Demo class videos</Breadcrumb.Item>
   </Breadcrumb>
-
-  <h3 className="fw-bold mb-1 mb-0 fw-semibold name_heading">Teacher Informative videos</h3>
-      <div className="d-flex justify-content-between align-items-center mb-3">
+<div className="d-flex justify-content-between align-items-center mb-4">
+       <h3 className="fw-bold mb-1 mb-0 fw-semibold name_heading">Demo class videos</h3>
         {isAdmin && (
           <Button className="buttonColor" onClick={openCreate}>
-            Add Teacher Info
+            Add Demo class
           </Button>
         )}
       </div>
+
+
+
+
+
+  
+     
 
       {loading ? (
         <div className="text-center py-4">
@@ -178,7 +184,7 @@ const TeacherInfoList = () => {
           {items.length === 0 && (
             <Col xs={12}>
               <Card body className="text-muted">
-                No teacher info available.
+                No Demo class vedios are available.
               </Card>
             </Col>
           )}
@@ -250,7 +256,7 @@ const TeacherInfoList = () => {
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Form onSubmit={onSubmit}>
           <Modal.Header closeButton>
-            <Modal.Title>{editingItem ? "Edit Teacher Info" : "Add Teacher Info"}</Modal.Title>
+            <Modal.Title>{editingItem ? "Edit Demo Class" : "Add Demo Class"}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Form.Group className="mb-3">

@@ -24,13 +24,6 @@ import {
   ProgressBar,
 } from "react-bootstrap";
 
-const COURSE_TYPES = [
-  { value: "NEBOSH", label: "NEBOSH" },
-  { value: "IOSH", label: "IOSH" },
-  { value: "OSHA", label: "OSHA" },
-  { value: "RIGGER3", label: "RIGGER3" },
-];
-
 const VIDEO_LANGUAGES = [
   { value: "Urdu", label: "Urdu" },
   { value: "English", label: "English" },
@@ -59,6 +52,7 @@ export default function CourseVideoList() {
   const navigate = useNavigate();
   const token = useSelector((state) => state.auth.token);
 
+  const [courseTypes, setCourseTypes] = useState([]); // Dynamic courses from API
   const [videos, setVideos] = useState([]);
   const [filterCourseType, setFilterCourseType] = useState("");
   const [filterLanguage, setFilterLanguage] = useState("");
@@ -71,6 +65,7 @@ export default function CourseVideoList() {
   const [uploadForm, setUploadForm] = useState({ title: "", courseType: "", language: "English" });
   const [videoFile, setVideoFile] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
+  const [managingMaterialFile, setManagingMaterialFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [uploadProgressPct, setUploadProgressPct] = useState(null);
   /** Extra lines for loader: bytes, chunk index, phase label */
@@ -88,6 +83,26 @@ export default function CourseVideoList() {
 
   /** Avoid global full-screen loader on this page (local progress + toasts instead). */
   const noGlobalLoader = { showGlobalLoader: false };
+
+  // Fetch dynamic courses from API
+  const fetchCourses = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/admin/ohs-courses`, {
+        headers: { Authorization: `Bearer ${token}` },
+        ...noGlobalLoader,
+      });
+      // Convert courses array to COURSE_TYPES format
+      const courses = res.data?.courses || [];
+      const formatted = courses.map((c) => ({
+        value: c.name,
+        label: c.name,
+      }));
+      setCourseTypes(formatted);
+    } catch (err) {
+      console.error("Failed to fetch courses:", err);
+      setCourseTypes([]);
+    }
+  };
 
   // Fetch videos
   const fetchVideos = async () => {
@@ -109,11 +124,15 @@ export default function CourseVideoList() {
   };
 
   useEffect(() => {
+    fetchCourses();
+  }, [token]);
+
+  useEffect(() => {
     fetchVideos();
   }, [filterCourseType, filterLanguage]);
 
   // Group videos by course for Tabs
-  const courseOrder = COURSE_TYPES.map((c) => c.value);
+  const courseOrder = courseTypes.map((c) => c.value);
   const byCourse = courseOrder.reduce((acc, course) => {
     acc[course] = videos.filter((v) => v.courseType === course);
     return acc;
@@ -146,6 +165,8 @@ export default function CourseVideoList() {
       if (videoFile) formData.append("video", videoFile);
       // Optional course attachment for students (PDF). If empty, backend keeps existing.
       if (pdfFile) formData.append("pdf", pdfFile);
+      // Optional managing material file (PDF). If empty, backend keeps existing.
+      if (managingMaterialFile) formData.append("managingMaterial", managingMaterialFile);
 
       // Do not set Content-Type manually — browser/axios must add multipart boundary.
       const authHeaders = { Authorization: `Bearer ${token}` };
@@ -247,35 +268,67 @@ export default function CourseVideoList() {
           { uploadId },
           { headers: { ...authHeaders, "Content-Type": "application/json" }, timeout: 0, ...noGlobalLoader }
         );
-        if (pdfFile && created?.video?._id) {
-          setUploadDetail({
-            phase: "pdf",
-            loadedBytes: 0,
-            totalBytes: pdfFile.size,
-            chunkCurrent: null,
-            totalChunks: null,
-          });
-          setUploadProgressPct(99);
-          const pdfFd = new FormData();
-          pdfFd.append("title", uploadForm.title);
-          pdfFd.append("courseType", uploadForm.courseType);
-          pdfFd.append("language", lang);
-          pdfFd.append("videoLang", lang);
-          pdfFd.append("pdf", pdfFile);
-          await axios.put(`${API_BASE}/admin/courseVideo/${created.video._id}?language=${langQ}`, pdfFd, {
-            ...longRequest,
-            onUploadProgress: (ev) => {
-              if (!ev.total) return;
-              setUploadProgressPct(98 + Math.round((ev.loaded / ev.total) * 2));
-              setUploadDetail({
-                phase: "pdf",
-                loadedBytes: ev.loaded,
-                totalBytes: ev.total,
-                chunkCurrent: null,
-                totalChunks: null,
-              });
-            },
-          });
+        if ((pdfFile || managingMaterialFile) && created?.video?._id) {
+          if (pdfFile) {
+            setUploadDetail({
+              phase: "pdf",
+              loadedBytes: 0,
+              totalBytes: pdfFile.size,
+              chunkCurrent: null,
+              totalChunks: null,
+            });
+            setUploadProgressPct(99);
+            const pdfFd = new FormData();
+            pdfFd.append("title", uploadForm.title);
+            pdfFd.append("courseType", uploadForm.courseType);
+            pdfFd.append("language", lang);
+            pdfFd.append("videoLang", lang);
+            pdfFd.append("pdf", pdfFile);
+            await axios.put(`${API_BASE}/admin/courseVideo/${created.video._id}?language=${langQ}`, pdfFd, {
+              ...longRequest,
+              onUploadProgress: (ev) => {
+                if (!ev.total) return;
+                setUploadProgressPct(98 + Math.round((ev.loaded / ev.total) * 1));
+                setUploadDetail({
+                  phase: "pdf",
+                  loadedBytes: ev.loaded,
+                  totalBytes: ev.total,
+                  chunkCurrent: null,
+                  totalChunks: null,
+                });
+              },
+            });
+          }
+          if (managingMaterialFile) {
+            setUploadDetail({
+              phase: "material",
+              loadedBytes: 0,
+              totalBytes: managingMaterialFile.size,
+              chunkCurrent: null,
+              totalChunks: null,
+            });
+            setUploadProgressPct(99);
+            const materialFd = new FormData();
+            materialFd.append("title", uploadForm.title);
+            materialFd.append("courseType", uploadForm.courseType);
+            materialFd.append("language", lang);
+            materialFd.append("videoLang", lang);
+            materialFd.append("managingMaterial", managingMaterialFile);
+            await axios.put(`${API_BASE}/admin/courseVideo/${created.video._id}?language=${langQ}`, materialFd, {
+              ...longRequest,
+              onUploadProgress: (ev) => {
+                if (!ev.total) return;
+                setUploadProgressPct(98 + Math.round((ev.loaded / ev.total) * 1));
+                setUploadDetail({
+                  phase: "material",
+                  loadedBytes: ev.loaded,
+                  totalBytes: ev.total,
+                  chunkCurrent: null,
+                  totalChunks: null,
+                });
+              },
+            });
+          }
         }
         setUploadProgressPct(100);
         toast.success("Video uploaded successfully");
@@ -314,6 +367,7 @@ export default function CourseVideoList() {
     setUploadForm({ title: "", courseType: "", language: "English" });
     setVideoFile(null);
     setPdfFile(null);
+    setManagingMaterialFile(null);
     setEditId(null);
     setEditMode(false);
   };
@@ -391,24 +445,37 @@ export default function CourseVideoList() {
     {
       name: "Documents",
       cell: (row) => {
-     
-        const fileUrl = row.fileUrl
+        const courseFileUrl = row.fileUrl
           ? `${process.env.REACT_APP_BASE_uploads}/${row.fileUrl}`
+          : "";
+        const managingMaterialUrl = row.managingMaterialUrl
+          ? `${process.env.REACT_APP_BASE_uploads}/${row.managingMaterialUrl}`
           : "";
 
         return (
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            
             {row.fileUrl && (
               <a
-                href={fileUrl}
+                href={courseFileUrl}
                 download
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Open Course File"
                 style={{ color: "#6f42c1", textDecoration: "none" }}
               >
-                <FaFilePdf size={22} title="Open Course File" />
+                <FaFilePdf size={22} title="Course File" />
+              </a>
+            )}
+            {row.managingMaterialUrl && (
+              <a
+                href={managingMaterialUrl}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Open Managing Material"
+                style={{ color: "#17a2b8", textDecoration: "none" }}
+              >
+                <FaFilePdf size={22} title="Managing Material" />
               </a>
             )}
           </div>
@@ -456,6 +523,7 @@ export default function CourseVideoList() {
               });
               setVideoFile(null);
               setPdfFile(null);
+              setManagingMaterialFile(null);
               setEditMode(true);
               setShowModal(true);
             }}
@@ -497,7 +565,7 @@ export default function CourseVideoList() {
             onChange={(e) => setFilterCourseType(e.target.value)}
           >
             <option value="">All Courses</option>
-            {COURSE_TYPES.map((c) => (
+            {courseTypes.map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}
               </option>
@@ -536,7 +604,7 @@ value={filterCourseType}
 onChange={(e) => setFilterCourseType(e.target.value)}
 >
 <option value="">All Courses</option>
-{COURSE_TYPES.map((c) => (
+{courseTypes.map((c) => (
   <option key={c.value} value={c.value}>
     {c.label}
   </option>
@@ -569,7 +637,7 @@ onChange={(e) => setFilterCourseType(e.target.value)}
   }}
 >
   <IoMdAdd className="flex-shrink-0" />
-  <span className="d-none d-sm-inline ms-1">Upload Video</span>
+  <span className="d-none d-sm-inline ms-1">Upload</span>
   <span className="d-sm-none ms-1">Upload</span>
 </Button>
 </Col>
@@ -641,7 +709,7 @@ onChange={(e) => setFilterCourseType(e.target.value)}
                 required
               >
                 <option value="">Select Course</option>
-                {COURSE_TYPES.map((c) => (
+                {courseTypes.map((c) => (
                   <option key={c.value} value={c.value}>
                     {c.label}
                   </option>
@@ -689,12 +757,14 @@ onChange={(e) => setFilterCourseType(e.target.value)}
                   {uploadDetail?.phase === "merging"
                     ? "Merging video on server…"
                     : uploadDetail?.phase === "pdf"
-                      ? "Uploading PDF…"
-                      : uploadDetail?.phase === "preparing"
-                        ? "Preparing upload…"
-                        : editMode
-                          ? "Updating…"
-                          : "Uploading video…"}
+                      ? "Uploading course file…"
+                      : uploadDetail?.phase === "material"
+                        ? "Uploading managing material…"
+                        : uploadDetail?.phase === "preparing"
+                          ? "Preparing upload…"
+                          : editMode
+                            ? "Updating…"
+                            : "Uploading video…"}
                 </div>
                 <ProgressBar
                   animated
@@ -709,7 +779,10 @@ onChange={(e) => setFilterCourseType(e.target.value)}
                   )}
                   {uploadDetail?.phase === "pdf" &&
                     uploadDetail.totalBytes > 0 &&
-                    `${formatBytes(uploadDetail.loadedBytes)} / ${formatBytes(uploadDetail.totalBytes)} (PDF)`}
+                    `${formatBytes(uploadDetail.loadedBytes)} / ${formatBytes(uploadDetail.totalBytes)} (Course File)`}
+                  {uploadDetail?.phase === "material" &&
+                    uploadDetail.totalBytes > 0 &&
+                    `${formatBytes(uploadDetail.loadedBytes)} / ${formatBytes(uploadDetail.totalBytes)} (Managing Material)`}
                   {(uploadDetail?.phase === "upload" || uploadDetail?.phase === "parts") &&
                     uploadDetail.totalBytes > 0 && (
                       <span>
@@ -735,6 +808,20 @@ onChange={(e) => setFilterCourseType(e.target.value)}
               />
               <Form.Text className="text-muted d-block" style={{ fontSize: 12 }}>
                 Admin may upload a PDF attachment. If left empty, students will not see a file link.
+              </Form.Text>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>
+                Managing Material File (PDF) {editMode ? "(Optional)" : "(Optional)"}
+              </Form.Label>
+              <Form.Control
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => setManagingMaterialFile(e.target.files?.[0] || null)}
+              />
+              <Form.Text className="text-muted d-block" style={{ fontSize: 12 }}>
+                Admin may upload a managing material PDF attachment. If left empty, students will not see a managing material file link.
               </Form.Text>
             </Form.Group>
           </Modal.Body>

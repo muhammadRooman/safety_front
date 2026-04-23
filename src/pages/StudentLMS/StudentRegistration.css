@@ -1,0 +1,88 @@
+.student-page {
+  background: linear-gradient(135deg, #eef2ff, #ffffff);
+  min-height: 100vh;
+}
+
+.main-title {
+  font-size: 42px;
+  color: #0d6efd;
+}
+
+.tab-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  min-width: 180px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.form-card {
+  border-radius: 20px;
+}
+
+.form-control,
+.form-select {
+  height: 50px;
+  border-radius: 12px;
+}
+
+.submit-btn {
+  height: 52px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.preview-img {
+  width: 240px;
+  height: 240px;
+  object-fit: cover;
+
+    border: 3px solid #eee;
+}
+
+.reg-card {
+  border-radius: 18px;
+  overflow: hidden;
+  transition: 0.3s;
+}
+
+.reg-card:hover {
+  transform: translateY(-6px);
+}
+
+.img-wrap {
+  height: 220px;
+  overflow: hidden;
+}
+
+.reg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.success-icon {
+  font-size: 60px;
+  color: #198754;
+}
+
+@media (max-width: 768px) {
+  .main-title {
+    font-size: 28px;
+  }
+
+  .tab-btn {
+    width: 100%;
+  }
+
+  .preview-img {
+    width: 110px;
+    height: 110px;
+  }
+}

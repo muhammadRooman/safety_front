@@ -187,7 +187,7 @@ const Dashboard = () => {
           {/* Enroll Teacher - Only for teacher */}
           {user?.role === "teacher" && (
             <>
-              <Col>
+              {/* <Col>
                 <Card
                   className="dashboard-card h-100"
                   onClick={() => navigate("/dashboard/see_all_teacher_enroll")}
@@ -200,7 +200,7 @@ const Dashboard = () => {
                     <Card.Text>{enrollTeacherCount}</Card.Text>
                   </Card.Body>
                 </Card>
-              </Col>
+              </Col> */}
 
               <Col>
                 <Card
@@ -210,8 +210,8 @@ const Dashboard = () => {
                 >
                   <Card.Body className="text-center">
                     <HiUsers size={40} className="mb-2 dashboard-card-icon" />
-                    <Card.Title>{t("enroll_student")}</Card.Title>
-                    <Card.Text>{t("enroll_student_desc")}</Card.Text>
+                    <Card.Title>{t("Students")}</Card.Title>
+                    <Card.Text>{t("Total Entroll Students")}</Card.Text>
                     <Card.Text>{studentsCount-1}</Card.Text>
                   </Card.Body>
                 </Card>
@@ -246,7 +246,7 @@ const Dashboard = () => {
           )}
 
           {/* Reset Password */}
-          <Col>
+          {/* <Col>
             <Card className="dashboard-card h-100" onClick={() => navigate("/dashboard/profile")} style={{ cursor: "pointer" }}>
               <Card.Body className="text-center">
                 <FaRedo size={40} className="mb-2 dashboard-card-icon" />
@@ -254,7 +254,7 @@ const Dashboard = () => {
                 <Card.Text>{t("reset_password_desc")}</Card.Text>
               </Card.Body>
             </Card>
-          </Col>
+          </Col> */}
         </Row>
       </Container>
     </div>

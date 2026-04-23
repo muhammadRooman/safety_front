@@ -5,7 +5,7 @@ import axios from "axios";
 import { adminRoutes, studentRoutes, DASHBOARD_HOME } from "../config/dashboardRoutes";
 import { isTokenExpired } from "../utils/authToken";
 
-/** Old shared `/dashboard/teacher-info` → correct role-prefixed URL */
+/** Old shared `/dashboard/demo-class` → correct role-prefixed URL */
 export default function TeacherInfoLegacyRedirect() {
   const token = useSelector((s) => s.auth.token);
   const [target, setTarget] = useState(null);

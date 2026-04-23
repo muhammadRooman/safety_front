@@ -1,10 +1,19 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Breadcrumb, Container, Row, Col, Card, Modal, Button } from "react-bootstrap";
+import {
+  Breadcrumb,
+  Container,
+  Row,
+  Col,
+  Card,
+  Modal,
+  Button,
+} from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-
+import { FaBookOpen } from "react-icons/fa";
+import { LuImageOff } from "react-icons/lu";
 const List = () => {
   const navigate = useNavigate();
   const token = useSelector((state) => state.auth.token);
@@ -19,12 +28,6 @@ const List = () => {
     "NEBOSH",
     "IOSH",
     "OSHA",
-    "Rigger 1",
-    "Rigger 2",
-    "RIGGER3",
-    "Risk Assessment",
-    "First Aid",
-    "Fire Safety",
   ];
 
   const DEFAULT_DESCRIPTION =
@@ -42,7 +45,6 @@ const List = () => {
   const [contact, setContact] = useState(DEFAULT_CONTACT);
   const [loading, setLoading] = useState(false);
 
-  // Normalize
   const normalizeCourse = (course) => {
     if (typeof course === "string") {
       return { name: course, image: "" };
@@ -53,10 +55,9 @@ const List = () => {
     };
   };
 
-  // Image URL
   const getImageUrl = (imagePath) => {
     if (!imagePath || imagePath.trim() === "") {
-      return "/newcourse.jpg";
+      return "";
     }
 
     if (imagePath.startsWith("http")) {
@@ -64,9 +65,11 @@ const List = () => {
     }
 
     let clean = imagePath;
+
     if (clean.startsWith("/uploads")) {
       clean = clean.replace("/uploads", "");
     }
+
     if (!clean.startsWith("/")) {
       clean = "/" + clean;
     }
@@ -77,6 +80,7 @@ const List = () => {
   useEffect(() => {
     const fetchConfig = async () => {
       if (!token) return;
+
       setLoading(true);
 
       try {
@@ -117,9 +121,11 @@ const List = () => {
   const chunkedCourses = useMemo(() => {
     const list = courses.map(normalizeCourse);
     const chunks = [];
+
     for (let i = 0; i < list.length; i += 3) {
       chunks.push(list.slice(i, i + 3));
     }
+
     return chunks;
   }, [courses]);
 
@@ -130,7 +136,6 @@ const List = () => {
 
   return (
     <Container className="py-4">
-
       <Breadcrumb>
         <Breadcrumb.Item onClick={() => navigate("/dashboard")}>
           Dashboard
@@ -138,7 +143,9 @@ const List = () => {
         <Breadcrumb.Item active>OHS All Courses</Breadcrumb.Item>
       </Breadcrumb>
 
-      <h3 className="mb-4 fw-semibold">OHS Academy - All Courses</h3>
+      <h3 className="mb-4 fw-semibold name_heading">
+        OHS Academy - All Courses
+      </h3>
 
       {loading ? (
         <div className="text-center py-5">Loading...</div>
@@ -148,16 +155,19 @@ const List = () => {
             {chunk.map((course, j) => {
               const name = course.name;
               const imageUrl = getImageUrl(course.image);
+              const hasImage = imageUrl && imageUrl.trim() !== "";
 
               return (
                 <Col xs={12} sm={6} md={4} key={j}>
                   <Card
                     className="shadow-sm border-0 border-start border-warning border-4 course-card"
-                    style={{ borderRadius: "12px", cursor: "pointer" }}
+                    style={{
+                      borderRadius: "12px",
+                      cursor: "pointer",
+                    }}
                     onClick={() => handleCardClick(name)}
                   >
-
-                    {/* IMAGE TOP */}
+                    {/* IMAGE / ICON TOP */}
                     <div
                       style={{
                         height: "180px",
@@ -165,27 +175,41 @@ const List = () => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
+                        padding: "15px",
                       }}
                     >
-                      <img
-                        src={imageUrl}
-                        alt={name}
-                        style={{
-                          maxWidth: "100%",
-                          maxHeight: "100%",
-                          objectFit: "contain",
-                        }}
-                        onError={(e) => {
-                          e.target.src = "/newcourse.jpg";
-                        }}
-                      />
+                      {hasImage ? (
+                        <img
+                          src={imageUrl}
+                          alt={name}
+                          style={{
+                            maxWidth: "100%",
+                            maxHeight: "100%",
+                            objectFit: "contain",
+                          }}
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <div className="text-center">
+                          <LuImageOff
+                            size={120}
+                            style={{
+                              padding: "16px",
+                            }}
+                          />
+                          <div className="mt-2 text-muted small">
+                            No Image
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* TEXT BOTTOM */}
                     <Card.Body className="text-center fw-bold py-2">
                       {name}
                     </Card.Body>
-
                   </Card>
                 </Col>
               );
@@ -196,12 +220,17 @@ const List = () => {
 
       {/* DESCRIPTION */}
       <h5 className="mt-3">Course Information</h5>
+
       <div className="description-scroll-box">
         <p className="mb-0">{description}</p>
       </div>
 
       {/* MODAL */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+      <Modal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        centered
+      >
         <Modal.Header closeButton className="bg-warning">
           <Modal.Title>{selectedCourse}</Modal.Title>
         </Modal.Header>
@@ -211,28 +240,40 @@ const List = () => {
 
           <hr />
 
-          <p><b>Name:</b> {contact.name}</p>
-          <p><b>Email:</b> {contact.email}</p>
-          <p><b>Phone:</b> {contact.phone}</p>
-          <p><b>Address:</b> {contact.address}</p>
+          <p>
+            <b>Name:</b> {contact.name}
+          </p>
+          <p>
+            <b>Email:</b> {contact.email}
+          </p>
+          <p>
+            <b>Phone:</b> {contact.phone}
+          </p>
+          <p>
+            <b>Address:</b> {contact.address}
+          </p>
         </Modal.Body>
 
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
+          <Button
+            variant="secondary"
+            onClick={() => setShowModal(false)}
+          >
             Close
           </Button>
         </Modal.Footer>
       </Modal>
 
-      {/* STYLES */}
       <style>{`
         .course-card {
           transition: 0.3s;
         }
+
         .course-card:hover {
           transform: translateY(-5px);
           box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
         }
+
         .description-scroll-box {
           max-height: 140px;
           overflow-y: auto;
@@ -241,7 +282,6 @@ const List = () => {
           border-radius: 6px;
         }
       `}</style>
-
     </Container>
   );
 };

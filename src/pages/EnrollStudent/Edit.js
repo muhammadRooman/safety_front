@@ -73,16 +73,8 @@ export default function StudentEnrollList() {
   const [meetLink, setMeetLink] = useState("");
   const [loadingLink, setLoadingLink] = useState(false);
 
-  const subjectOptions = [
-    { value: "NEBOSH", label: "NEBOSH" },
-    { value: "IOSH", label: "IOSH" },
-    { value: "OSHA", label: "OSHA" },
-    { value: "ISO Safety", label: "ISO Safety" },
-    { value: "RIGGER3", label: "RIGGER3" },
-    { value: "AD Safety", label: "AD Safety" },
-    { value: "First Aid", label: "First Aid" },
-    { value: "Fire Safety", label: "Fire Safety" },
-  ];
+  // Dynamic Subject Options from API
+  const [subjectOptions, setSubjectOptions] = useState([]);
 
   // Fetch User
   const fetchUser = useCallback(async () => {
@@ -94,6 +86,27 @@ export default function StudentEnrollList() {
       setUser(response.data.user);
     } catch (err) {
       toast.error("Error fetching user");
+    }
+  }, [token]);
+
+  // Fetch OHS Courses and set as subject options
+  const fetchOhsCourses = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASE_ADMIN_API}/admin/ohs-courses`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      if (response.data && response.data.courses && Array.isArray(response.data.courses)) {
+        const courses = response.data.courses.map((course) => ({
+          value: course.name,
+          label: course.name,
+        }));
+        setSubjectOptions(courses);
+      }
+    } catch (err) {
+      console.error("Error fetching OHS courses:", err);
+      toast.error("Error loading courses");
     }
   }, [token]);
 
@@ -127,6 +140,11 @@ export default function StudentEnrollList() {
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
+
+  // Fetch OHS Courses on mount
+  useEffect(() => {
+    fetchOhsCourses();
+  }, [fetchOhsCourses]);
 
   // Socket for online students
   useEffect(() => {

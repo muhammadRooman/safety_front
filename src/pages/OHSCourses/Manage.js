@@ -16,6 +16,8 @@ import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { MdDelete, MdEdit, MdAdd } from "react-icons/md";
 import { ENV } from "../../config/config";
+import { FaBookOpen } from "react-icons/fa";
+import { LuImageOff } from "react-icons/lu";
 const DEFAULT_DESCRIPTION = "This course is designed to enhance your skills and knowledge in occupational health & safety.";
 const DEFAULT_CONTACT = {
   name: "OHS Academy",
@@ -261,7 +263,7 @@ const getImageUrl = (imagePath) => {
         <Breadcrumb.Item active>OHS Courses Manage</Breadcrumb.Item>
       </Breadcrumb>
 
-      <h2 className="mb-4 fw-semibold name_heading">OHS Academy - Manage Courses</h2>
+      <h3 className="mb-4 fw-semibold name_heading">OHS Academy - Manage Courses</h3>
 
       {loading ? (
         <div className="text-center py-5">
@@ -379,116 +381,133 @@ const getImageUrl = (imagePath) => {
     </div>
   </Card.Header>
 
-  <Card.Body className="p-4" style={{ maxHeight: "580px", overflowY: "auto" }}>
-    <Row className="g-4">
-      {filteredCourses.length > 0 ? (
-        filteredCourses.map((course) => {
-          const originalIndex = courses.findIndex((c) => c.name === course.name);
-          
-          const imageSrc = course.image && course.image.trim() !== ""
-            ? getImageUrl(course.image)
-            : "/newcourse.jpg";
+ <Card.Body className="p-4" style={{ maxHeight: "580px", overflowY: "auto" }}>
+  <Row className="g-4">
+    {filteredCourses.length > 0 ? (
+      filteredCourses.map((course) => {
+        const originalIndex = courses.findIndex((c) => c.name === course.name);
 
-          return (
-            <Col key={course.name} md={6} lg={4} xl={3}>
-              <Card
-                className="h-100 border-0 course-card"
+        const hasImage =
+          course.image && course.image.trim() !== "";
+
+        const imageSrc = hasImage
+          ? getImageUrl(course.image)
+          : null;
+
+        return (
+          <Col key={course.name} md={6} lg={4} xl={3}>
+            <Card
+              className="h-100 border-0 course-card"
+              style={{
+                borderRadius: "16px",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                overflow: "hidden",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-8px)";
+                e.currentTarget.style.boxShadow =
+                  "0 20px 40px rgba(0,0,0,0.12)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 20px rgba(0,0,0,0.06)";
+              }}
+            >
+              {/* ================= IMAGE / ICON SECTION ================= */}
+              <div
+                className="position-relative d-flex align-items-center justify-content-center"
                 style={{
-                  borderRadius: "16px",
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
-                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  height: "210px",
+                  background: "#f8f9fa",
+                  padding: "12px",
                   overflow: "hidden",
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-8px)";
-                  e.currentTarget.style.boxShadow = "0 20px 40px rgba(0,0,0,0.12)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.06)";
-                }}
               >
-                {/* ==================== IMAGE SECTION (Full Image - No Zoom) ==================== */}
-                <div 
-                  className="position-relative d-flex align-items-center justify-content-center"
-                  style={{ 
-                    height: "210px", 
-                    background: "#f8f9fa",
-                    padding: "12px",        // Thoda padding for better look with contain
-                    overflow: "hidden"
-                  }}
-                >
+                {hasImage ? (
                   <img
                     src={imageSrc}
                     alt={course.name}
                     style={{
                       maxWidth: "100%",
                       maxHeight: "100%",
-                      objectFit: "contain",     // ← Changed to contain (full image dikhega)
+                      objectFit: "contain",
                       objectPosition: "center",
                       transition: "transform 0.4s ease",
                     }}
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = "/newcourse.jpg";
+                      e.target.style.display = "none";
                     }}
                   />
-                  
-                  {/* Optional subtle hover overlay */}
-                  <div 
-                    className="position-absolute top-0 start-0 w-100 h-100 opacity-0 transition-all"
-                    style={{ 
-                      background: "linear-gradient(transparent, rgba(0,0,0,0.4))",
-                      pointerEvents: "none"
-                    }}
-                  />
-                </div>
-
-                {/* Content */}
-                <Card.Body className="d-flex flex-column p-4">
-                  <Card.Title 
-                    className="fs-5 fw-semibold mb-3 text-dark line-clamp-2" 
-                    style={{ minHeight: "52px" }}
-                  >
-                    {course.name}
-                  </Card.Title>
-
-                  <div className="d-flex gap-2 mt-auto">
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      className="flex-fill rounded-pill fw-medium"
-                      onClick={() => startEdit(originalIndex)}
-                      disabled={!isTeacher || saving}
-                    >
-                      <MdEdit className="me-1" /> Edit
-                    </Button>
-
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      className="flex-fill rounded-pill fw-medium"
-                      onClick={() => requestDelete(originalIndex)}
-                      disabled={!isTeacher || saving || courses.length <= 1}
-                    >
-                      <MdDelete className="me-1" /> Delete
-                    </Button>
+                ) : (
+                  <div className="text-center">
+                    <LuImageOff 
+                      size={120}
+                     
+                      style={{
+                     
+                        padding: "18px",
+                        
+                      }}
+                    />
+                    <p className="mt-3 mb-0 text-muted fw-medium">
+                      No Image
+                    </p>
                   </div>
-                </Card.Body>
-              </Card>
-            </Col>
-          );
-        })
-      ) : (
-        <Col xs={12}>
-          <div className="text-center py-5 text-muted">
-            <h5>No courses found</h5>
-            <p>Try adjusting your search term</p>
-          </div>
-        </Col>
-      )}
-    </Row>
-  </Card.Body>
+                )}
+              </div>
+
+              {/* ================= CONTENT ================= */}
+              <Card.Body className="d-flex flex-column p-4">
+                <Card.Title
+                  className="fs-5 fw-semibold mb-3 text-dark line-clamp-2"
+                  style={{ minHeight: "52px" }}
+                >
+                  {course.name}
+                </Card.Title>
+
+                <div className="d-flex gap-2 mt-auto">
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    className="flex-fill rounded-pill fw-medium"
+                    onClick={() => startEdit(originalIndex)}
+                    disabled={!isTeacher || saving}
+                  >
+                    <MdEdit className="me-1" /> Edit
+                  </Button>
+
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    className="flex-fill rounded-pill fw-medium"
+                    onClick={() => requestDelete(originalIndex)}
+                    disabled={
+                      !isTeacher ||
+                      saving ||
+                      courses.length <= 1
+                    }
+                  >
+                    <MdDelete className="me-1" /> Delete
+                  </Button>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        );
+      })
+    ) : (
+      <Col xs={12}>
+        <div className="text-center py-5 text-muted">
+          <h5>No courses found</h5>
+          <p>Try adjusting your search term</p>
+        </div>
+      </Col>
+    )}
+  </Row>
+</Card.Body>
 </Card>
         </>
       )}

@@ -14,6 +14,7 @@ import {
   FaBriefcase,
   FaVideo,
   FaAward,
+  FaClipboardList,
 } from 'react-icons/fa';
 import { HiUsers } from 'react-icons/hi2';
 import { logout } from '../redux/Auth/AuthSlice';
@@ -312,13 +313,14 @@ const Sidebar = () => {
 
           {user?.role === 'teacher' && (
             <>
+             
               <Nav.Link
                 as={Link}
-                to="/dashboard/students_enroll"
-                className={`sidebar-link ${isActive('/dashboard/students_enroll') ? 'active' : ''}`}
+                to="/dashboard/admin-student-registrations"
+                className={`sidebar-link ${isActive('/dashboard/admin-student-registrations') ? 'active' : ''}`}
                 onClick={closeSidebar}
               >
-                <HiUsers size={25} className="me-3" /> {t('Students')}
+                <FaClipboardList  size={25} className="me-3" />New Registrations
               </Nav.Link>
               <Nav.Link
                 as={Link}
@@ -326,21 +328,25 @@ const Sidebar = () => {
                 className={`sidebar-link ${isActive('/dashboard/studentRegister') ? 'active' : ''}`}
                 onClick={closeSidebar}
               >
-                <IoPersonAddSharp  size={25} className="me-3" /> {t('Register')}
+                <IoPersonAddSharp  size={25} className="me-3" /> {t('Register Students')}
               </Nav.Link>
-
-              <Nav.Link
+               <Nav.Link
                 as={Link}
-                to="/dashboard/manage-videos"
-                className={`sidebar-link ${isActive('/dashboard/manage-videos') ? 'active' : ''}`}
+                to="/dashboard/students_enroll"
+                className={`sidebar-link ${isActive('/dashboard/students_enroll') ? 'active' : ''}`}
                 onClick={closeSidebar}
               >
-                <FaFilm   size={25}  className="me-3" /> {t('COURSE_VIDEOS')}
+                <HiUsers size={25} className="me-3" /> {t('Students')}
               </Nav.Link>
-
-             
-
-              <Nav.Link
+ <Nav.Link
+                as={Link}
+                to="/dashboard/demo-class"
+                className={`sidebar-link ${isActive('/dashboard/demo-class') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaInfoCircle size={22} className="me-3" /> Demo class
+              </Nav.Link>
+                <Nav.Link
                 as={Link}
                 to="/dashboard/ohs_course_manage"
                 className={`sidebar-link ${isActive('/dashboard/ohs_course_manage') ? 'active' : ''}`}
@@ -348,6 +354,44 @@ const Sidebar = () => {
               >
                 <LuNotebookPen  size={25} className="me-3" /> Manage Courses
               </Nav.Link>
+                <Nav.Link
+                as={Link}
+                to="/dashboard/manage-videos"
+                className={`sidebar-link ${isActive('/dashboard/manage-videos') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaFilm   size={25}  className="me-3" /> {t('COURSE_VIDEOS')}
+              </Nav.Link>
+              <Nav.Link
+                as={Link}
+                to="/dashboard/admin-ohs-documents"
+                className={`sidebar-link ${isActive('/dashboard/admin-ohs-documents') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaClipboardList  size={25} className="me-3" /> OHS Documents
+              </Nav.Link>
+
+                      
+  <Nav.Link
+                as={Link}
+                to="/dashboard/post-job"
+                className={`sidebar-link ${isActive('/dashboard/post-job') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaBriefcase size={22} className="me-3" /> Post a Job
+              </Nav.Link>
+              <Nav.Link
+                as={Link}
+                to="/dashboard/all-jobs"
+                className={`sidebar-link ${isActive('/dashboard/all-jobs') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaBriefcase size={22} className="me-3" /> All Jobs
+              </Nav.Link>
+
+             
+
+            
  <Nav.Link
                 as={Link}
                 to="/dashboard/admin_live_class"
@@ -357,14 +401,14 @@ const Sidebar = () => {
                <FaVideo size={25} className="me-3" style={{ color: "green" }} />
 {t('Live Class')}
               </Nav.Link>
-                <Nav.Link
+                {/* <Nav.Link
                 as={Link}
                 to="/dashboard/see_all_teacher_enroll"
                 className={`sidebar-link ${isActive('/dashboard/see_all_teacher_enroll') ? 'active' : ''}`}
                 onClick={closeSidebar}
               >
                 <FaChalkboardTeacher size={25} className="me-3" /> {t('TEACHERS')}
-              </Nav.Link>
+              </Nav.Link> */}
             
 
             
@@ -391,30 +435,7 @@ const Sidebar = () => {
                 )}
               </Nav.Link>
 
-              <Nav.Link
-                as={Link}
-                to="/dashboard/teacher-info"
-                className={`sidebar-link ${isActive('/dashboard/teacher-info') ? 'active' : ''}`}
-                onClick={closeSidebar}
-              >
-                <FaInfoCircle size={22} className="me-3" /> Teacher Info
-              </Nav.Link>
-  <Nav.Link
-                as={Link}
-                to="/dashboard/post-job"
-                className={`sidebar-link ${isActive('/dashboard/post-job') ? 'active' : ''}`}
-                onClick={closeSidebar}
-              >
-                <FaBriefcase size={22} className="me-3" /> Post a Job
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/dashboard/all-jobs"
-                className={`sidebar-link ${isActive('/dashboard/all-jobs') ? 'active' : ''}`}
-                onClick={closeSidebar}
-              >
-                <FaBriefcase size={22} className="me-3" /> All Jobs
-              </Nav.Link>
+   
               <Nav.Link
                 as={Link}
                 to="/dashboard/certificates"
@@ -428,6 +449,41 @@ const Sidebar = () => {
 
           {user?.role === 'student' && (
             <>
+              <Nav.Link
+                as={Link}
+                to="/dashboard/student-registration"
+                className={`sidebar-link ${isActive('/dashboard/student-registration') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <IoPersonAddSharp size={25} className="me-3" />Registration
+              </Nav.Link>
+               
+              <Nav.Link
+                as={Link}
+                to="/dashboard/demo-class"
+                className={`sidebar-link ${isActive('/dashboard/demo-class') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaInfoCircle size={22} className="me-3" /> Demo Class
+              </Nav.Link>
+               <Nav.Link
+                as={Link}
+                to="/dashboard/ohs_course"
+                className={`sidebar-link ${isActive('/dashboard/ohs_course') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <LuNotebookPen size={25} className="me-3" /> {t('ohs_course')}
+              </Nav.Link>
+              
+              <Nav.Link
+                as={Link}
+                to="/dashboard/ohs-documents"
+                className={`sidebar-link ${isActive('/dashboard/ohs-documents') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaClipboardList size={25} className="me-3" /> OHS Documents
+              </Nav.Link>
+
               <Nav.Link
                 as={Link}
                 to="/dashboard/my-videos"
@@ -455,14 +511,7 @@ const Sidebar = () => {
                 <SiGooglemeet size={25} className="me-3" /> {t('Google Meet')}
               </Nav.Link>
 
-              <Nav.Link
-                as={Link}
-                to="/dashboard/ohs_course"
-                className={`sidebar-link ${isActive('/dashboard/ohs_course') ? 'active' : ''}`}
-                onClick={closeSidebar}
-              >
-                <LuNotebookPen size={25} className="me-3" /> {t('ohs_course')}
-              </Nav.Link>
+             
 
               <Nav.Link
                 as={Link}
@@ -492,15 +541,7 @@ const Sidebar = () => {
                   </Badge>
                 )}
               </Nav.Link>
-              
-              <Nav.Link
-                as={Link}
-                to="/dashboard/teacher-info"
-                className={`sidebar-link ${isActive('/dashboard/teacher-info') ? 'active' : ''}`}
-                onClick={closeSidebar}
-              >
-                <FaInfoCircle size={22} className="me-3" /> Teacher Info
-              </Nav.Link>
+             
               <Nav.Link
                 as={Link}
                 to="/dashboard/my-certificates"

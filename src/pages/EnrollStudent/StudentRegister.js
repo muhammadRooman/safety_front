@@ -135,14 +135,17 @@ function StudentRegister() {
                           <Form.Label className="fw-semibold small mb-1">
                             Email
                           </Form.Label>
-                          <Form.Control
-                            type="email"
-                            {...register('email')}
-                            className="rounded-pill px-3 px-sm-4 py-2 py-sm-2.5"
-                            placeholder="Email address"
-                            autoComplete="email"
-                            isInvalid={!!errors.email}
-                          />
+                         <Form.Control
+  type="email"
+  {...register('email')}
+  onInput={(e) => {
+    e.target.value = e.target.value.toLowerCase();
+  }}
+  className="rounded-pill px-3 px-sm-4 py-2 py-sm-2.5"
+  placeholder="Email address"
+  autoComplete="email"
+  isInvalid={!!errors.email}
+/>
                           <Form.Control.Feedback type="invalid">
                             {errors.email?.message}
                           </Form.Control.Feedback>

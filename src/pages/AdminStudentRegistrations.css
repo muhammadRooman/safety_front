@@ -1,0 +1,244 @@
+.admin-registrations {
+  background: #f5f7fb;
+  min-height: 100vh;
+  padding: 30px 15px;
+}
+
+/* Heading */
+.admin-registrations h2 {
+  color: #111;
+  font-weight: 700;
+  font-size: 28px;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Cards */
+.stat-card {
+  border: none;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+  transition: 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+}
+
+.stat-card .card-body {
+  padding: 22px;
+}
+
+.stat-card h6 {
+  color: #666;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.stat-card h2 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+}
+
+/* Search */
+.form-label {
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.form-control,
+.form-select {
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid #dcdcdc;
+  box-shadow: none !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #667eea;
+}
+
+/* TABLE WRAPPER */
+.registrations-table-wrapper {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* SCROLLBAR */
+.registrations-table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.registrations-table-wrapper::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 20px;
+}
+
+.registrations-table-wrapper::-webkit-scrollbar-track {
+  background: #ececec;
+}
+
+/* TABLE */
+.registrations-table {
+  margin-bottom: 0;
+  min-width: 1000px;
+  white-space: nowrap;
+}
+
+.registrations-table thead {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.registrations-table thead th {
+  color: #141010;
+  border: none;
+  padding: 16px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.registrations-table tbody td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f0f0f0;
+  color: #111;
+}
+
+.registrations-table tbody tr:hover {
+  background: #fafbff;
+}
+
+/* Image */
+.table-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid #eee;
+}
+
+/* Badge */
+.badge {
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 50px;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.action-buttons .btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Empty Alert */
+.alert-info {
+  background: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 40px 20px;
+  text-align: center;
+  color: #111;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Modal */
+.modal-content {
+  border-radius: 18px;
+  border: none;
+}
+
+.modal-header {
+  border-bottom: none;
+}
+
+.modal-title {
+  font-weight: 700;
+  color: #111;
+}
+
+.modal-footer {
+  border-top: none;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .admin-registrations {
+    padding: 15px 10px;
+  }
+
+  .admin-registrations h2 {
+    font-size: 21px;
+  }
+
+  .stat-card .card-body {
+    padding: 16px;
+  }
+
+  .stat-card h2 {
+    font-size: 26px;
+  }
+
+  .registrations-table {
+    min-width: 1100px;
+    font-size: 13px;
+  }
+
+  .registrations-table thead th,
+  .registrations-table tbody td {
+    padding: 12px 10px;
+  }
+
+  .table-image {
+    width: 42px;
+    height: 42px;
+  }
+
+  .action-buttons {
+    flex-direction: row !important;
+    gap: 5px;
+  }
+
+  .action-buttons .btn {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+/* EXTRA SMALL */
+@media (max-width: 480px) {
+  .registrations-table {
+    min-width: 1180px;
+  }
+
+  .admin-registrations h2 {
+    font-size: 18px;
+  }
+
+  .form-control,
+  .form-select {
+    height: 44px;
+  }
+}

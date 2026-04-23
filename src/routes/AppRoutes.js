@@ -48,6 +48,10 @@ const JobsBoard = lazy(() => import("../pages/postJob/JobsBoard"));
 const AdminCertificates = lazy(() => import("../pages/Certificates/AdminCertificates"));
 const StudentCertificates = lazy(() => import("../pages/Certificates/StudentCertificates"));
 const AdminForgotPassword = lazy(() => import("../pages/forgetADmin/AdminForgotPassword"));
+const StudentRegistration = lazy(() => import("../pages/StudentLMS/StudentRegistration"));
+const AdminStudentRegistrations = lazy(() => import("../pages/AdminStudentRegistrations"));
+const AdminOHSDocument = lazy(() => import("../pages/AdminOHSDocument"));
+const StudentOHSDocument = lazy(() => import("../pages/StudentOHSDocument"));
 
 const AppRoutes = () => {
   return (
@@ -194,14 +198,14 @@ const AppRoutes = () => {
             </TeacherRoute>
           }
         />
-          <Route
+          {/* <Route
             path="dashboard/see_all_teacher_enroll"
             element={
               <TeacherRoute>
                 <SeeAllTeachersEnroll />
               </TeacherRoute>
             }
-          />
+          /> */}
          
           <Route
             path="dashboard/ohs_Course"
@@ -263,7 +267,7 @@ const AppRoutes = () => {
           />
        
           <Route
-            path="dashboard/teacher-info"
+            path="dashboard/demo-class"
             element={
               <PrivateRoute>
                 <TeacherInfoList />
@@ -300,6 +304,38 @@ const AppRoutes = () => {
               <PrivateRoute>
                 <JobsBoard />
               </PrivateRoute>
+            }
+          />
+          <Route
+            path="dashboard/student-registration"
+            element={
+              <StudentRoute>
+                <StudentRegistration />
+              </StudentRoute>
+            }
+          />
+          <Route
+            path="dashboard/admin-student-registrations"
+            element={
+              <TeacherRoute>
+                <AdminStudentRegistrations />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="dashboard/admin-ohs-documents"
+            element={
+              <TeacherRoute>
+                <AdminOHSDocument />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="dashboard/ohs-documents"
+            element={
+              <StudentRoute>
+                <StudentOHSDocument />
+              </StudentRoute>
             }
           />
           <Route path="*" element={<NotFound />} />
