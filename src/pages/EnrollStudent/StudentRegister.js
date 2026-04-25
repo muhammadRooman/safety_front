@@ -24,6 +24,7 @@ const validationSchema = Yup.object().shape({
   phone: Yup.string()
     .required('Phone is required')
     .matches(/^[0-9]{10,15}$/, 'Phone must be 10-15 digits'),
+  branch: Yup.string().required('Branch is required'),
   password: Yup.string()
     .required('Password is required')
     .min(6, 'Password must be at least 6 characters'),
@@ -56,6 +57,7 @@ function StudentRegister() {
         phone: data.phone,
         password: data.password,
         role: 'student',
+        branch: data.branch,
       };
       const response = await PublicApi.post(`${ENV.appBaseUrl}/auth/signup`, payload);
 
@@ -166,6 +168,23 @@ function StudentRegister() {
                           />
                           <Form.Control.Feedback type="invalid">
                             {errors.phone?.message}
+                          </Form.Control.Feedback>
+                        </Col>
+                        <Col xs={12} md={6}>
+                          <Form.Label className="fw-semibold small mb-1">
+                            Branch
+                          </Form.Label>
+                          <Form.Control
+                            type="text"
+                            inputMode="numeric"
+                            {...register('branch')}
+                            className="rounded-pill px-3 px-sm-4 py-2 py-sm-2.5"
+                            placeholder="Branch"
+                            autoComplete="branch"
+                            isInvalid={!!errors.branch}
+                          />
+                          <Form.Control.Feedback type="invalid">
+                            {errors.branch?.message}
                           </Form.Control.Feedback>
                         </Col>
 

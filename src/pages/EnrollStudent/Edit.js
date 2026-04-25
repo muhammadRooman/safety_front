@@ -40,6 +40,7 @@ export default function StudentEnrollList() {
   const [filterText, setFilterText] = useState("");
   const [filterCourse, setFilterCourse] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [filterBranch, setFilterBranch] = useState("");
   const [open, setOpen] = useState(false);
   const [delId, setDelId] = useState("");
   const [user, setUser] = useState(null);
@@ -55,6 +56,7 @@ export default function StudentEnrollList() {
     name: "",
     email: "",
     phone: "",
+    branch:"",
     subject: [],
     password: "",
     videoLanguage: "English",
@@ -185,6 +187,9 @@ export default function StudentEnrollList() {
     }
   }, [fetchBlogs, user]);
 
+  // Get unique branches
+  const uniqueBranches = [...new Set(blogs.map(item => item.branch).filter(Boolean))].sort();
+
   // Filtered Items
   const filteredItems = blogs.filter((item) => {
     const nameMatch = item.name?.toLowerCase().includes(filterText.toLowerCase());
@@ -194,6 +199,7 @@ export default function StudentEnrollList() {
       ? [item.subject]
       : [];
     const courseMatch = !filterCourse || subjects.includes(filterCourse);
+    const branchMatch = !filterBranch || item.branch === filterBranch;
 
     const isActive = onlineStudentIds.includes(String(item._id));
     const statusMatch =
@@ -205,7 +211,7 @@ export default function StudentEnrollList() {
         ? !isActive
         : true;
 
-    return nameMatch && courseMatch && statusMatch;
+    return nameMatch && courseMatch && branchMatch && statusMatch;
   });
 
   // Handle Edit Student
@@ -216,6 +222,7 @@ export default function StudentEnrollList() {
       name: row.name || "",
       email: row.email || "",
       phone: row.phone || "",
+      branch: row.branch || "",
       subject: Array.isArray(row.subject) ? row.subject : row.subject ? [row.subject] : [],
       password: "",
       videoLanguage: row.videoLanguage || "English",
@@ -357,6 +364,7 @@ export default function StudentEnrollList() {
         name: "",
         email: "",
         phone: "",
+        branch:"",
         subject: [],
         password: "",
         videoLanguage: "English",
@@ -388,6 +396,8 @@ export default function StudentEnrollList() {
     { label: "Name", key: "name" },
     { label: "Email", key: "email" },
     { label: "Phone", key: "phone" },
+    { label: "Branch", key: "branch" },
+
     { label: "Subject", key: "subject" },
     { label: "Created At", key: "createdAt" },
   ];
@@ -396,6 +406,8 @@ export default function StudentEnrollList() {
     name: item.name,
     email: item.email,
     phone: item.phone,
+    branch: item.branch,
+
     subject: Array.isArray(item.subject) ? item.subject.join(", ") : item.subject,
     createdAt: new Date(item.createdAt).toLocaleDateString(),
   }));
@@ -434,6 +446,7 @@ export default function StudentEnrollList() {
                 name: "",
                 email: "",
                 phone: "",
+                branch:"",
                 subject: [],
                 password: "",
                 videoLanguage: "English",
@@ -448,7 +461,7 @@ export default function StudentEnrollList() {
 
       {cSVHide && (
         <Row className="mb-3 g-2">
-          <Col xs={12} sm={6} md={4}>
+          <Col xs={12} sm={6} md={3}>
             <Form.Control
               type="text"
               placeholder="Search by name"
@@ -456,7 +469,18 @@ export default function StudentEnrollList() {
               onChange={(e) => setFilterText(e.target.value)}
             />
           </Col>
-          <Col xs={12} sm={6} md={4}>
+          
+          <Col xs={12} sm={6} md={3}>
+            <Form.Select value={filterBranch} onChange={(e) => setFilterBranch(e.target.value)}>
+              <option value="">All branches</option>
+              {uniqueBranches.map((branch) => (
+                <option key={branch} value={branch}>
+                  {branch}
+                </option>
+              ))}
+            </Form.Select>
+          </Col>
+          <Col xs={12} sm={6} md={3}>
             <Form.Select value={filterCourse} onChange={(e) => setFilterCourse(e.target.value)}>
               <option value="">All courses</option>
               {subjectOptions.map((opt) => (
@@ -466,7 +490,7 @@ export default function StudentEnrollList() {
               ))}
             </Form.Select>
           </Col>
-          <Col xs={12} sm={6} md={4}>
+          <Col xs={12} sm={6} md={3}>
             <Form.Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
               <option value="all">All Students</option>
               <option value="active">🟢 Active (Online)</option>
@@ -535,6 +559,10 @@ export default function StudentEnrollList() {
             <Form.Group className="mb-3">
               <Form.Label>Phone <span style={{ color: "red" }}>*</span></Form.Label>
               <Form.Control type="text" name="phone" value={newStudent.phone} onChange={handleAddStudentChange} required />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Branch <span style={{ color: "red" }}>*</span></Form.Label>
+              <Form.Control type="text" name="branch" value={newStudent.branch} onChange={handleAddStudentChange} required />
             </Form.Group>
 
             <Form.Group className="mb-3">

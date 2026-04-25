@@ -36,7 +36,13 @@ const Columns = ({ handleEdit, handleDelete, handleProvideLink, onlineStudentIds
     name: "Email",
     selector: (row) => row.email,
     grow: 2,
-    minWidth: "140px",
+    minWidth: "100px",
+  },
+  {
+    name: "Branch",
+    selector: (row) => row.branch,
+    grow: 1.5,
+    minWidth: "100px",
   },
   {
     name: "Phone",
