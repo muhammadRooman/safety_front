@@ -567,12 +567,12 @@ export default function AdminAccounts() {
                         <td>{r.branch || "—"}</td>
                         <td className="small">{r.phone || "—"}</td>
                         <td className="small text-muted">{r.email || "—"}</td>
-                        <td className="text-end fw-semibold">Rs. {r.totalFee ?? "—"}</td>
-                        <td className="text-end fw-medium">Rs. {r.paidTotal ?? "—"}</td>
+                        <td className="text-end fw-semibold"> {r.totalFee ?? "—"}</td>
+                        <td className="text-end fw-medium">{r.paidTotal ?? "—"}</td>
 
                         <td className="text-center">
                           {r.pending > 0 ? (
-                            <Badge bg="warning" text="dark">Rs. {r.pending}</Badge>
+                            <Badge bg="warning" text="dark">{r.pending}</Badge>
                           ) : (
                             <Badge bg="success">Paid</Badge>
                           )}
@@ -580,7 +580,7 @@ export default function AdminAccounts() {
 
                         <td className="text-center">
                           {isOverpaid ? (
-                            <Badge bg="danger">Rs. {Math.abs(remaining)} </Badge>
+                            <Badge bg="danger">{Math.abs(remaining)} </Badge>
                           ) : (
                             <span className="text-muted">—</span>
                           )}
