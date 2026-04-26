@@ -16,6 +16,7 @@ import {
   FaAward,
   FaClipboardList,
 } from 'react-icons/fa';
+import { FaMoneyBillWave } from "react-icons/fa";
 import { HiUsers } from 'react-icons/hi2';
 import { logout } from '../redux/Auth/AuthSlice';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -433,6 +434,15 @@ const Sidebar = () => {
                     {adminUnreadTotal > 99 ? '99+' : adminUnreadTotal}
                   </Badge>
                 )}
+              </Nav.Link>
+
+              <Nav.Link
+                as={Link}
+                to="/dashboard/admin-accounts"
+                className={`sidebar-link ${isActive('/dashboard/admin-accounts') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <FaMoneyBillWave size={25} className="me-3" /> Accounts / Fees
               </Nav.Link>
 
    

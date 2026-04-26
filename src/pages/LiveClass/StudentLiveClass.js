@@ -79,6 +79,8 @@ export default function StudentLiveClass() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [joinedClass, setJoinedClass] = useState(null);
+  const [videoEnabled, setVideoEnabled] = useState(true);
+  const [videoSettingLoaded, setVideoSettingLoaded] = useState(false);
 
   const jitsiRef = useJitsi(joinedClass?.roomName, studentName);
 
@@ -114,8 +116,37 @@ export default function StudentLiveClass() {
       );
       setAllClasses(Array.isArray(res.data?.data) ? res.data.data : []);
     } catch (err) {
+      if (err?.response?.status === 403) {
+        setVideoEnabled(false);
+        setJoinedClass(null);
+        setAllClasses([]);
+      }
       console.error(err);
       setAllClasses([]);
+    }
+  };
+
+  const fetchVideoSetting = async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.REACT_APP_BASE_ADMIN_API}/admin/settings/video`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          showGlobalLoader: false,
+        }
+      );
+      const enabled = res.data?.enabled !== false;
+      setVideoEnabled(enabled);
+      if (!enabled) {
+        setJoinedClass(null);
+        setAllClasses([]);
+      }
+      return enabled;
+    } catch (err) {
+      // best-effort: default true
+      return true;
+    } finally {
+      setVideoSettingLoaded(true);
     }
   };
 
@@ -123,7 +154,8 @@ export default function StudentLiveClass() {
   const manualRefresh = async () => {
     setRefreshing(true);
     try {
-      await fetchAllClasses();
+      const enabled = await fetchVideoSetting();
+      if (enabled) await fetchAllClasses();
     } finally {
       setRefreshing(false);
     }
@@ -133,16 +165,18 @@ export default function StudentLiveClass() {
     if (!token) return;
 
     const initialFetch = async () => {
-      await fetchAllClasses();
+      const enabled = await fetchVideoSetting();
+      if (enabled) await fetchAllClasses();
       setInitialLoading(false);
     };
 
     initialFetch();
 
-    // Poll in background: no global loader, no button “Checking…” flicker every 15s.
-    const interval = setInterval(() => {
-      fetchAllClasses();
-    }, 15000);
+    // Auto-sync access changes from admin side without manual refresh.
+    const interval = setInterval(async () => {
+      const enabled = await fetchVideoSetting();
+      if (enabled) await fetchAllClasses();
+    }, 5000);
     return () => clearInterval(interval);
   }, [token]);
 
@@ -175,10 +209,19 @@ export default function StudentLiveClass() {
         style={{ borderRadius: "12px" }}
       >
         <Card.Body>
-          {initialLoading ? (
+          {initialLoading || !videoSettingLoaded ? (
             <div className="text-center py-5">
               <Spinner animation="border" />
               <p className="mt-3 text-muted">Loading your classes...</p>
+            </div>
+          ) : !videoEnabled ? (
+            <div className="text-center py-5">
+              <p className="mb-2 fw-semibold" style={{ color: "#e74c3c" }}>
+                Live class video is OFF by admin.
+              </p>
+              <p className="text-muted mb-0">
+                Fees paid karne ke baad aap ko video access mil jayegi.
+              </p>
             </div>
           ) : (
             <>

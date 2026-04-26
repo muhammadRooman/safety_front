@@ -12,6 +12,7 @@ const AuthSessionGuard = () => {
   const token = useSelector((state) => state.auth.token);
   const timeoutRef = useRef(null);
   const loggedOutRef = useRef(false);
+  const heartbeatRef = useRef(null);
 
   const doLogout = () => {
     if (loggedOutRef.current) return;
@@ -68,8 +69,12 @@ const AuthSessionGuard = () => {
         const isExpiredMsg =
           message.includes("token") &&
           (message.includes("expired") || message.includes("invalid") || message.includes("unauthorized"));
+        const isDisabledMsg =
+          message.includes("disabled") ||
+          message.includes("deactivate") ||
+          message.includes("reactivate");
 
-        if (status === 401 || isExpiredMsg) {
+        if (status === 401 || isExpiredMsg || ((status === 403 || status === 401) && isDisabledMsg)) {
           doLogout();
         }
         return Promise.reject(error);
@@ -80,6 +85,36 @@ const AuthSessionGuard = () => {
       axios.interceptors.response.eject(interceptorId);
     };
   }, []);
+
+  // Heartbeat: if admin disables account, auto-logout without page refresh.
+  useEffect(() => {
+    if (heartbeatRef.current) {
+      clearInterval(heartbeatRef.current);
+      heartbeatRef.current = null;
+    }
+    if (!token) return undefined;
+
+    heartbeatRef.current = setInterval(async () => {
+      try {
+        await axios.get(`${process.env.REACT_APP_BASE_ADMIN_API}/auth/userDetails`, {
+          headers: { Authorization: `Bearer ${token}` },
+          showGlobalLoader: false,
+        });
+      } catch (error) {
+        const status = error?.response?.status;
+        const message = String(
+          error?.response?.data?.message || error?.response?.data?.error || ""
+        ).toLowerCase();
+        if (status === 401 || status === 403 || message.includes("disabled") || message.includes("deactivate")) {
+          doLogout();
+        }
+      }
+    }, 5000);
+
+    return () => {
+      if (heartbeatRef.current) clearInterval(heartbeatRef.current);
+    };
+  }, [token]);
 
   // If user manually opens protected URL with expired token, kick to login.
   useEffect(() => {

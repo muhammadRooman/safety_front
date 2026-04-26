@@ -52,6 +52,7 @@ const StudentRegistration = lazy(() => import("../pages/StudentLMS/StudentRegist
 const AdminStudentRegistrations = lazy(() => import("../pages/AdminStudentRegistrations"));
 const AdminOHSDocument = lazy(() => import("../pages/AdminOHSDocument"));
 const StudentOHSDocument = lazy(() => import("../pages/StudentOHSDocument"));
+const AdminAccounts = lazy(() => import("../pages/Accounts/AdminAccounts"));
 
 const AppRoutes = () => {
   return (
@@ -319,6 +320,14 @@ const AppRoutes = () => {
             element={
               <TeacherRoute>
                 <AdminStudentRegistrations />
+              </TeacherRoute>
+            }
+          />
+          <Route
+            path="dashboard/admin-accounts"
+            element={
+              <TeacherRoute>
+                <AdminAccounts />
               </TeacherRoute>
             }
           />

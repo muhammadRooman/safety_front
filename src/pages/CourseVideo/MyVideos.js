@@ -28,6 +28,7 @@ export default function MyVideos() {
   const [activeTab, setActiveTab] = useState("all");
   const [contact, setContact] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [videoEnabled, setVideoEnabled] = useState(true);
 
   const API_BASE = process.env.REACT_APP_BASE_ADMIN_API;
 
@@ -47,6 +48,24 @@ export default function MyVideos() {
     };
 
     fetchConfig();
+  }, [token, API_BASE]);
+
+  const fetchVideoSetting = useCallback(async () => {
+    if (!token) return true;
+    try {
+      const res = await axios.get(`${API_BASE}/admin/settings/video`, {
+        headers: { Authorization: `Bearer ${token}` },
+        showGlobalLoader: false,
+      });
+      const enabled = res.data?.enabled !== false;
+      setVideoEnabled(enabled);
+      if (!enabled) {
+        setVideos([]);
+      }
+      return enabled;
+    } catch (err) {
+      return true;
+    }
   }, [token, API_BASE]);
 
   // Main Fetch Data Function
@@ -77,14 +96,48 @@ export default function MyVideos() {
 
   // Fetch data on component mount
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    const initialLoad = async () => {
+      const enabled = await fetchVideoSetting();
+      if (enabled) {
+        await fetchData();
+      } else {
+        setLoading(false);
+      }
+    };
+    initialLoad();
+  }, [fetchData, fetchVideoSetting]);
+
+  // Auto sync: admin ON/OFF reflected without refresh.
+  useEffect(() => {
+    if (!token) return;
+    const interval = setInterval(async () => {
+      const enabled = await fetchVideoSetting();
+      if (enabled) {
+        try {
+          const videosRes = await axios.get(`${API_BASE}/admin/courseVideo/my-videos`, {
+            headers: { Authorization: `Bearer ${token}` },
+            showGlobalLoader: false,
+          });
+          setVideos(videosRes.data || []);
+        } catch (err) {
+          if (err?.response?.status === 403) {
+            setVideoEnabled(false);
+            setVideos([]);
+          }
+        }
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [token, API_BASE, fetchVideoSetting]);
 
   // Silent Refresh Function
   const silentRefresh = async () => {
     setRefreshing(true);
     try {
-      await fetchData();
+      const enabled = await fetchVideoSetting();
+      if (enabled) {
+        await fetchData();
+      }
       toast.success("Videos refreshed successfully!");
     } catch (err) {
       toast.error("Failed to refresh videos");
@@ -152,6 +205,22 @@ export default function MyVideos() {
         <Card>
           <Card.Body className="text-center">
             <p>Loading videos...</p>
+          </Card.Body>
+        </Card>
+      ) : !videoEnabled ? (
+        <Card>
+          <Card.Body className="text-center" style={{ color: "#dc3545" }}>
+            <p style={{ fontWeight: 600, fontSize: "1rem", marginBottom: "0.5rem" }}>
+              Video access is currently disabled.
+            </p>
+            <p style={{ fontSize: "0.95rem", marginBottom: "0.5rem" }}>
+              Fees paid karne ke baad aap ko video access mil jayegi.
+            </p>
+            {contact && (
+              <p style={{ fontSize: "0.95rem", marginBottom: "0.5rem" }}>
+                CEO: <strong>{contact.name}</strong> | Contact: <strong>{contact.phone}</strong> | Email: <strong>{contact.email}</strong>
+              </p>
+            )}
           </Card.Body>
         </Card>
       ) : videos.length === 0 ? (
