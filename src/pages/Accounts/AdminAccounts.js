@@ -526,18 +526,18 @@ export default function AdminAccounts() {
               <Table hover className="mb-0 align-middle">
                 <thead className="table-light">
                   <tr>
-                    <th>Name</th>
+                    <th>Student Name</th>
                     <th>Assigned Courses</th>
                     <th>Branch</th>
                     <th>Phone</th>
                     <th>Email</th>
                     <th className="text-end">Total Fee</th>
                     <th className="text-end">Paid</th>
-                    <th className="text-center">Pending fee</th>
-                    <th className="text-center">Refund fee</th>
+                    <th className="text-center">Pending</th>
+                    <th className="text-center">Refund</th>
                     <th>Payment Date</th>
                     <th className="text-center">Video Status</th>
-                    <th className="text-center">Account Status</th>
+                    <th className="text-center">Account</th>
                     <th style={{ width: 210 }} className="text-center">Actions</th>
                   </tr>
                 </thead>
@@ -567,12 +567,12 @@ export default function AdminAccounts() {
                         <td>{r.branch || "—"}</td>
                         <td className="small">{r.phone || "—"}</td>
                         <td className="small text-muted">{r.email || "—"}</td>
-                        <td className="text-end fw-semibold"> {r.totalFee ?? "—"}</td>
-                        <td className="text-end fw-medium">{r.paidTotal ?? "—"}</td>
+                        <td className="text-end fw-semibold">Rs. {r.totalFee ?? "—"}</td>
+                        <td className="text-end fw-medium">Rs. {r.paidTotal ?? "—"}</td>
 
                         <td className="text-center">
                           {r.pending > 0 ? (
-                            <Badge bg="warning" text="dark">{r.pending}</Badge>
+                            <Badge bg="warning" text="dark">Rs. {r.pending}</Badge>
                           ) : (
                             <Badge bg="success">Paid</Badge>
                           )}
@@ -580,7 +580,7 @@ export default function AdminAccounts() {
 
                         <td className="text-center">
                           {isOverpaid ? (
-                            <Badge bg="danger">{Math.abs(remaining)} </Badge>
+                            <Badge bg="danger">Rs. {Math.abs(remaining)} Refund</Badge>
                           ) : (
                             <span className="text-muted">—</span>
                           )}
@@ -653,141 +653,92 @@ export default function AdminAccounts() {
 
       {/* ====================== ADD PAYMENT MODAL ====================== */}
      {/* ====================== PROFESSIONAL PAYMENT MODAL ====================== */}
-<Modal
-  show={showPaymentModal}
-  onHide={() => setShowPaymentModal(false)}
+<Modal 
+  show={showPaymentModal} 
+  onHide={() => setShowPaymentModal(false)} 
   centered
-  size="lg"
 >
-  <Modal.Header closeButton className="border-0 pb-0">
-    <Modal.Title className="d-flex align-items-center fw-bold">
-     
+  <Modal.Header closeButton className="border-0">
+    <Modal.Title className="d-flex align-items-center">
+      <i className="bi bi-credit-card-2-front fs-3 text-success me-3"></i>
       Add Payment
     </Modal.Title>
   </Modal.Header>
 
-  <Modal.Body className="pt-3 px-4 pb-4">
+  <Modal.Body>
     {activeStudent && (
-      <div
-        className="p-4 rounded-4 border shadow-sm mb-4"
-        style={{ background: "#f8f9fa" }}
-      >
-        <div className="d-flex align-items-center">
-         
-
+      <div className="mb-4 p-4 bg-light rounded-3 border">
+        <div className="d-flex align-items-center mb-3">
+          <div className="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+            <i className="bi bi-person-fill fs-3 text-primary"></i>
+          </div>
           <div>
-            <h5 className="mb-1 fw-bold text-dark">
-             Name: {activeStudent.name}
-            </h5>
-            <small className="text-muted">
-              Student Payment Details
-            </small>
+            <h5 className="mb-1 fw-semibold">Name: {activeStudent.name}</h5>
           </div>
         </div>
 
-        <hr />
+        {/* Email with Icon */}
+        <div className="d-flex align-items-center mb-2">
+          <i className="bi bi-envelope-fill text-muted me-3 fs-5" style={{ width: "20px" }}></i>
+          <span className="text-muted">Email: {activeStudent.email || "—"}</span>
+        </div>
 
-        <div className="row g-3">
-          <div className="col-md-6">
-            <div className="d-flex align-items-center">
-              <i className="bi bi-envelope-fill text-muted me-2"></i>
-              <span>Email: {activeStudent.email || "No Email"}</span>
-            </div>
-          </div>
-
-          <div className="col-md-6">
-            <div className="d-flex align-items-center">
-              <i className="bi bi-geo-alt-fill text-muted me-2"></i>
-              <span>Branch: {activeStudent.branch || "No Branch"}</span>
-            </div>
-          </div>
+        {/* Branch with Icon */}
+        <div className="d-flex align-items-center">
+          <i className="bi bi-geo-alt-fill text-muted me-3 fs-5" style={{ width: "20px" }}></i>
+          <span className="text-muted">Branch: {activeStudent.branch || "No Branch"}</span>
         </div>
       </div>
     )}
 
-    {/* Summary Cards */}
-    <Row className="g-3 mb-4">
-      <Col md={6}>
-        <div className="p-3 rounded-4 border bg-light shadow-sm">
-          <small className="text-muted d-block">Current Paid</small>
-          <h5 className="mb-0 text-success fw-bold">
-            Rs. {currentPaidAmount || 0}
-          </h5>
-        </div>
-      </Col>
-
-      <Col md={6}>
-        <div className="p-3 rounded-4 border bg-light shadow-sm">
-          <small className="text-muted d-block">Total Fee</small>
-          <h5 className="mb-0 text-primary fw-bold">
-            Rs. {getNumericValue(activeStudent?.totalFee) || 0}
-          </h5>
-        </div>
-      </Col>
-    </Row>
-
-    {/* Form */}
     <Row className="g-4">
-      <Col md={6}>
-        <Form.Label className="fw-semibold">
-          Payment Amount
-          <span className="text-danger ms-1">*</span>
-        </Form.Label>
-
-       <div className="input-group shadow-sm">
-  <span className="input-group-text bg-white fw-bold text-success">
-    Rs
-  </span>
-
-  <Form.Control
-    ref={paymentAmountRef}
-    type="number"
-    min="0"
-    step="1"
-    value={paymentAmountInput}
-    onChange={(e) => setPaymentAmountInput(e.target.value)}
-    onFocus={(e) => e.target.select()}
-    placeholder="Enter payment amount"
-    className="border-start-0"
-  />
-</div>
+      <Col md={12}>
+        <div className="small text-muted mb-1">
+          Current Paid: <strong>Rs. {currentPaidAmount || 0}</strong>
+        </div>
       </Col>
 
       <Col md={6}>
-        <Form.Label className="fw-semibold">
-          Payment Date
-        </Form.Label>
+        <Form.Label className="fw-medium">Payment Amount (Rs.) <span className="text-danger">*</span></Form.Label>
+        <div className="input-group">
+          <span className="input-group-text">
+            <i className="bi bi-currency-rupee"></i>
+          </span>
+          <Form.Control
+            ref={paymentAmountRef}
+            type="number"
+            min="0"
+            step="1"
+            value={paymentAmountInput}
+            onChange={(e) => setPaymentAmountInput(e.target.value)}
+            onFocus={(e) => e.target.select()}
+            placeholder="Enter amount"
+            className="ps-2"
+          />
+        </div>
+      </Col>
 
-        <div className="input-group shadow-sm">
-           <span className="input-group-text bg-white fw-bold text-success">
-    Date
-  </span>
-
+      <Col md={6}>
+        <Form.Label className="fw-medium">Payment Date</Form.Label>
+        <div className="input-group">
+          <span className="input-group-text">
+            <i className="bi bi-calendar3"></i>
+          </span>
           <Form.Control
             type="date"
             value={paymentDateInput}
             onChange={(e) => setPaymentDateInput(e.target.value)}
-            className="border-start-0"
           />
         </div>
       </Col>
     </Row>
   </Modal.Body>
 
-  <Modal.Footer className="border-0 px-4 pb-4 pt-0">
-    <Button
-      variant="light"
-      className="px-4 rounded-pill border"
-      onClick={() => setShowPaymentModal(false)}
-    >
+  <Modal.Footer className="border-0">
+    <Button variant="secondary" onClick={() => setShowPaymentModal(false)}>
       Cancel
     </Button>
-
-    <Button
-      variant="success"
-      className="px-4 rounded-pill shadow-sm"
-      onClick={addPayment}
-    >
+    <Button variant="success" onClick={addPayment}>
       <i className="bi bi-check-lg me-2"></i>
       Add Payment
     </Button>
@@ -796,102 +747,70 @@ export default function AdminAccounts() {
 
       {/* Set Total Fee Modal */}
      {/* ====================== SET TOTAL FEE MODAL ====================== */}
-<Modal
-  show={showTotalModal}
-  onHide={() => setShowTotalModal(false)}
+<Modal 
+  show={showTotalModal} 
+  onHide={() => setShowTotalModal(false)} 
   centered
-  size="lg"
 >
-  <Modal.Header closeButton className="border-0 pb-0">
-    <Modal.Title className="d-flex align-items-center fw-bold">
-      
+  <Modal.Header closeButton className="border-0">
+    <Modal.Title className="d-flex align-items-center">
+      <i className="bi bi-coin fs-3 text-warning me-3"></i>
       Set Total Fee
     </Modal.Title>
   </Modal.Header>
 
-   <Modal.Body className="pt-3 px-4 pb-4">
+  <Modal.Body>
     {activeStudent && (
-      <div
-        className="p-4 rounded-4 border shadow-sm mb-4"
-        style={{ background: "#f8f9fa" }}
-      >
-        <div className="d-flex align-items-center">
-          
-
+      <div className="mb-4 p-4 bg-light rounded-3 border">
+        <div className="d-flex align-items-center mb-3">
+          <div className="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+            <i className="bi bi-person-fill fs-3 text-primary"></i>
+          </div>
           <div>
-            <h5 className="mb-1 fw-bold text-dark">
-             Name: {activeStudent.name}
-            </h5>
-            <small className="text-muted">
-              Student Fee Information
-            </small>
+            <h5 className="mb-1 fw-semibold">Name: {activeStudent.name}</h5>
           </div>
         </div>
 
-        <hr />
+        {/* Email with Icon */}
+        <div className="d-flex align-items-center mb-2">
+          <i className="bi bi-envelope-fill text-muted me-3 fs-5" style={{ width: "22px" }}></i>
+          <span className="text-muted">Email: {activeStudent.email || "—"}</span>
+        </div>
 
-        <div className="row g-3">
-          <div className="col-md-6">
-            <div className="d-flex align-items-center">
-              <i className="bi bi-envelope-fill text-muted me-2"></i>
-              <span>Email: {activeStudent.email || "No Email"}</span>
-            </div>
-          </div>
-
-          <div className="col-md-6">
-            <div className="d-flex align-items-center">
-              <i className="bi bi-geo-alt-fill text-muted me-2"></i>
-              <span>Branch: {activeStudent.branch || "No Branch"}</span>
-            </div>
-          </div>
+        {/* Branch with Icon */}
+        <div className="d-flex align-items-center">
+          <i className="bi bi-geo-alt-fill text-muted me-3 fs-5" style={{ width: "22px" }}></i>
+          <span className="text-muted">Branch: {activeStudent.branch || "No Branch"}</span>
         </div>
       </div>
     )}
 
-    {/* Input Section */}
-    <div className="p-4 rounded-4 border bg-light shadow-sm">
-      <Form.Group>
-        <Form.Label className="fw-semibold text-muted mb-2">
-          TOTAL FEE AMOUNT (Rs.)
-        </Form.Label>
-
-       <div className="input-group input-group-lg shadow-sm">
-  <span className="input-group-text bg-white border-end-0 fw-bold text-success">
-    Rs
-  </span>
-
-  <Form.Control
-    type="number"
-    min="0"
-    step="1"
-    value={totalFeeInput}
-    onChange={(e) => setTotalFeeInput(e.target.value)}
-    placeholder="Enter total fee amount"
-    className="border-start-0 fw-semibold"
-  />
-</div>
-
-        <small className="text-muted mt-2 d-block">
-          Please enter complete course fee amount.
-        </small>
-      </Form.Group>
-    </div>
+    <Form.Group>
+      <Form.Label className="fw-medium text-muted small mb-2">
+        TOTAL FEE AMOUNT (Rs.)
+      </Form.Label>
+      <div className="input-group input-group-lg">
+        <span className="input-group-text bg-white">
+          <i className="bi bi-currency-rupee fs-4 text-success"></i>
+        </span>
+        <Form.Control
+          type="number"
+          min="0"
+          step="1"
+          value={totalFeeInput}
+          onChange={(e) => setTotalFeeInput(e.target.value)}
+          placeholder="Enter total fee"
+          className="border-start-0 fw-semibold"
+        />
+      </div>
+    </Form.Group>
   </Modal.Body>
 
-  <Modal.Footer className="border-0 px-4 pb-4 pt-0">
-    <Button
-      variant="light"
-      className="px-4 rounded-pill border"
-      onClick={() => setShowTotalModal(false)}
-    >
+  <Modal.Footer className="border-0 pt-2">
+    <Button variant="light" onClick={() => setShowTotalModal(false)} className="px-4">
       Cancel
     </Button>
-
-    <Button
-      variant="primary"
-      className="px-4 rounded-pill shadow-sm"
-      onClick={saveTotalFee}
-    >
+    <Button variant="primary" onClick={saveTotalFee} className="px-5">
       <i className="bi bi-check2-circle me-2"></i>
       Save Total Fee
     </Button>

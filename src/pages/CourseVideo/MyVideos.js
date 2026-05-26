@@ -17,6 +17,26 @@ import {
 import { FaDownload } from "react-icons/fa";
 import { FaFilePdf } from "react-icons/fa6";
 
+function toYoutubeEmbedUrl(rawUrl) {
+  const raw = String(rawUrl || "").trim();
+  if (!raw) return "";
+
+  if (raw.includes("youtube.com/embed/")) {
+    return raw.split("?")[0];
+  }
+
+  if (/^[0-9A-Za-z_-]{11}$/.test(raw)) {
+    return `https://www.youtube.com/embed/${raw}`;
+  }
+
+  const match = raw.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([0-9A-Za-z_-]{11})/
+  );
+  const id = match?.[1];
+  if (!id) return "";
+  return `https://www.youtube.com/embed/${id}`;
+}
+
 export default function MyVideos() {
   const navigate = useNavigate();
   const token = useSelector((state) => state.auth.token);
@@ -267,18 +287,40 @@ export default function MyVideos() {
                       <Badge bg="primary">{v.courseType}</Badge>
                     </div>
 
-                    <video
-                      controls
-                      controlsList="nodownload noremoteplayback"
-                      disablePictureInPicture
-                      style={{ width: "100%", maxHeight: 200 }}
-                    >
-                      <source src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`} type="video/mp4" />
-                      <source src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`} type="video/webm" />
-                      <source src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`} type="video/quicktime" />
-                      <source src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`} type="video/x-msvideo" />
-                      Your browser does not support the video tag.
-                    </video>
+                    {v.youtubeUrl ? (
+                      <iframe
+                        src={toYoutubeEmbedUrl(v.youtubeUrl)}
+                        title="YouTube video"
+                        style={{ width: "100%", height: 200, border: 0 }}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <video
+                        controls
+                        controlsList="nodownload noremoteplayback"
+                        disablePictureInPicture
+                        style={{ width: "100%", maxHeight: 200 }}
+                      >
+                        <source
+                          src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`}
+                          type="video/mp4"
+                        />
+                        <source
+                          src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`}
+                          type="video/webm"
+                        />
+                        <source
+                          src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`}
+                          type="video/quicktime"
+                        />
+                        <source
+                          src={`${process.env.REACT_APP_BASE_uploads}/${v.videoUrl}`}
+                          type="video/x-msvideo"
+                        />
+                        Your browser does not support the video tag.
+                      </video>
+                    )}
 
                     <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
                       {v.fileUrl && (

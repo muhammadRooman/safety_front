@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoMdAdd } from "react-icons/io";
-import { FaPlayCircle, FaDownload } from "react-icons/fa";   // ← Added FaDownload
+import { FaPlayCircle, FaDownload, FaExternalLinkAlt } from "react-icons/fa";   // includes external link icon
 import { MdDelete, MdEdit } from "react-icons/md";
 import DataTable from "react-data-table-component";
 import axios from "axios";
@@ -48,6 +48,32 @@ function formatBytes(n) {
   return `${v.toFixed(decimals)} ${units[i]}`;
 }
 
+function toYoutubeEmbedUrl(rawUrl) {
+  const raw = String(rawUrl || "").trim();
+  if (!raw) return "";
+
+  // If already an embed URL, keep it.
+  if (raw.includes("youtube.com/embed/")) {
+    return raw.split("?")[0];
+  }
+
+  // Try to extract standard 11-char video id from common patterns.
+  // Examples:
+  // - https://www.youtube.com/watch?v=VIDEO_ID
+  // - https://youtu.be/VIDEO_ID
+  // - https://www.youtube.com/embed/VIDEO_ID
+  if (/^[0-9A-Za-z_-]{11}$/.test(raw)) {
+    return `https://www.youtube.com/embed/${raw}`;
+  }
+
+  const match = raw.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([0-9A-Za-z_-]{11})/
+  );
+  const id = match?.[1];
+  if (!id) return "";
+  return `https://www.youtube.com/embed/${id}`;
+}
+
 export default function CourseVideoList() {
   const navigate = useNavigate();
   const token = useSelector((state) => state.auth.token);
@@ -78,6 +104,12 @@ export default function CourseVideoList() {
   // Video Player Modal States ← NEW
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState("");
+  const [selectedIsYoutube, setSelectedIsYoutube] = useState(false);
+  const [selectedYoutubeEmbed, setSelectedYoutubeEmbed] = useState("");
+
+  // Upload modal: toggle between "upload file" and "YouTube link"
+  const [useYoutubeLink, setUseYoutubeLink] = useState(false);
+  const [youtubeLink, setYoutubeLink] = useState("");
 
   const API_BASE = process.env.REACT_APP_BASE_ADMIN_API;
 
@@ -146,6 +178,20 @@ export default function CourseVideoList() {
       return;
     }
 
+    const normalizedYoutube = String(youtubeLink || "").trim();
+    if (useYoutubeLink) {
+      if (!normalizedYoutube) {
+        toast.error("YouTube link is required");
+        return;
+      }
+    } else {
+      // On create mode we must have a file; on edit mode leaving file empty keeps current.
+      if (!editMode && !videoFile) {
+        toast.error("Video file is required");
+        return;
+      }
+    }
+
     setLoading(true);
     setUploadProgressPct(0);
     setUploadDetail({
@@ -163,6 +209,8 @@ export default function CourseVideoList() {
       formData.append("language", lang);
       formData.append("videoLang", lang);
       if (videoFile) formData.append("video", videoFile);
+      // Always send youtubeUrl so backend can clear previous value on switch.
+      formData.append("youtubeUrl", useYoutubeLink ? normalizedYoutube : "");
       // Optional course attachment for students (PDF). If empty, backend keeps existing.
       if (pdfFile) formData.append("pdf", pdfFile);
       // Optional managing material file (PDF). If empty, backend keeps existing.
@@ -370,6 +418,8 @@ export default function CourseVideoList() {
     setManagingMaterialFile(null);
     setEditId(null);
     setEditMode(false);
+    setUseYoutubeLink(false);
+    setYoutubeLink("");
   };
 
   // Delete Handler
@@ -423,7 +473,10 @@ export default function CourseVideoList() {
     {
       name: "Videos",
       cell: (row) => {
-        const videoUrl = `${process.env.REACT_APP_BASE_uploads}/${row.videoUrl}`;
+        const videoUrl = row.videoUrl
+          ? `${process.env.REACT_APP_BASE_uploads}/${row.videoUrl}`
+          : "";
+        const youtubeEmbed = row.youtubeUrl ? toYoutubeEmbedUrl(row.youtubeUrl) : "";
 
         return (
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -431,13 +484,31 @@ export default function CourseVideoList() {
               size={28}
               style={{ cursor: "pointer", color: "#28a745" }}
               onClick={() => {
-                setSelectedVideo(videoUrl);
+                if (row.youtubeUrl) {
+                  setSelectedIsYoutube(true);
+                  setSelectedYoutubeEmbed(youtubeEmbed);
+                  setSelectedVideo("");
+                } else {
+                  setSelectedIsYoutube(false);
+                  setSelectedVideo(videoUrl);
+                  setSelectedYoutubeEmbed("");
+                }
                 setShowVideoModal(true);
               }}
               title="Play Video"
             />
 
-            
+            {row.youtubeUrl && (
+              <a
+                href={row.youtubeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Open on YouTube"
+                style={{ color: "#dc3545", textDecoration: "none" }}
+              >
+                <FaExternalLinkAlt size={20} />
+              </a>
+            )}
           </div>
         );
       },
@@ -485,23 +556,35 @@ export default function CourseVideoList() {
     {
       name: "Downloads",
       cell: (row) => {
-        const videoUrl = `${process.env.REACT_APP_BASE_uploads}/${row.videoUrl}`;
-    
+        const videoUrl = row.videoUrl
+          ? `${process.env.REACT_APP_BASE_uploads}/${row.videoUrl}`
+          : "";
 
         return (
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            
-            <a
-              href={videoUrl}
-              download
-              rel="noopener noreferrer"
-              title="Download Video"
-              style={{ color: "#007bff", textDecoration: "none" }}
-            >
-              <FaDownload size={22}  title="Download Video"/>
-            </a>
+            {row.videoUrl && (
+              <a
+                href={videoUrl}
+                download
+                rel="noopener noreferrer"
+                title="Download Video"
+                style={{ color: "#007bff", textDecoration: "none" }}
+              >
+                <FaDownload size={22} title="Download Video" />
+              </a>
+            )}
 
-          
+            {row.youtubeUrl && (
+              <a
+                href={row.youtubeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Open on YouTube"
+                style={{ color: "#dc3545", textDecoration: "none" }}
+              >
+                <FaExternalLinkAlt size={22} />
+              </a>
+            )}
           </div>
         );
       },
@@ -521,6 +604,8 @@ export default function CourseVideoList() {
                 courseType: row.courseType,
                 language: row.language || "English",
               });
+              setUseYoutubeLink(Boolean(row.youtubeUrl));
+              setYoutubeLink(row.youtubeUrl || "");
               setVideoFile(null);
               setPdfFile(null);
               setManagingMaterialFile(null);
@@ -735,21 +820,55 @@ onChange={(e) => setFilterCourseType(e.target.value)}
               </Form.Select>
             </Form.Group>
 
+            {/* Upload source selector: default OFF => local file upload */}
             <Form.Group className="mb-3">
-              <Form.Label>
-                Video File {editMode ? "(Leave empty to keep current)" : "(Required)"}
-              </Form.Label>
-              <Form.Control
-                type="file"
-                accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
-                onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
-                required={!editMode}
+              <Form.Check
+                type="switch"
+                id="use-youtube-link-switch"
+                label="Use YouTube link instead of Video File"
+                checked={useYoutubeLink}
+                onChange={(e) => {
+                  const next = e.target.checked;
+                  setUseYoutubeLink(next);
+                  setVideoFile(null);
+                  if (!next) setYoutubeLink("");
+                }}
               />
-              <Form.Text className="text-muted d-block" style={{ fontSize: 12 }}>
-                Files above about 6MB are uploaded in smaller parts and merged on the server so large videos complete
-                more reliably.
-              </Form.Text>
             </Form.Group>
+
+            {useYoutubeLink ? (
+              <Form.Group className="mb-3">
+                <Form.Label>
+                  YouTube Video Link <span style={{ color: "red" }}>*</span>
+                </Form.Label>
+                <Form.Control
+                  type="url"
+                  placeholder="Paste YouTube URL (e.g. https://www.youtube.com/watch?v=VIDEO_ID)"
+                  value={youtubeLink}
+                  onChange={(e) => setYoutubeLink(e.target.value)}
+                  required
+                />
+                <Form.Text className="text-muted d-block" style={{ fontSize: 12 }}>
+                  Students/admin will see this video using YouTube embed.
+                </Form.Text>
+              </Form.Group>
+            ) : (
+              <Form.Group className="mb-3">
+                <Form.Label>
+                  Video File {editMode ? "(Leave empty to keep current)" : "(Required)"}
+                </Form.Label>
+                <Form.Control
+                  type="file"
+                  accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
+                  onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                  required={!editMode}
+                />
+                <Form.Text className="text-muted d-block" style={{ fontSize: 12 }}>
+                  Files above about 6MB are uploaded in smaller parts and merged on the server so large videos complete
+                  more reliably.
+                </Form.Text>
+              </Form.Group>
+            )}
 
             {loading && (
               <div className="rounded border bg-light p-3 mb-1">
@@ -874,19 +993,31 @@ onChange={(e) => setFilterCourseType(e.target.value)}
           <Modal.Title>Video Player</Modal.Title>
         </Modal.Header>
         <Modal.Body className="p-0">
-          {selectedVideo && (
-            <video
-              controls
-              autoPlay
-              className="w-100 course-video-modal-player"
-              style={{ height: "auto" }}
-            >
-              <source src={selectedVideo} type="video/mp4" />
-              <source src={selectedVideo} type="video/webm" />
-              <source src={selectedVideo} type="video/quicktime" />
-              <source src={selectedVideo} type="video/x-msvideo" />
-              Your browser does not support the video tag.
-            </video>
+          {selectedIsYoutube && selectedYoutubeEmbed ? (
+            <div style={{ width: "100%" }}>
+              <iframe
+                src={selectedYoutubeEmbed}
+                title="YouTube video player"
+                style={{ width: "100%", height: "60vh", border: 0 }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
+          ) : (
+            selectedVideo && (
+              <video
+                controls
+                autoPlay
+                className="w-100 course-video-modal-player"
+                style={{ height: "auto" }}
+              >
+                <source src={selectedVideo} type="video/mp4" />
+                <source src={selectedVideo} type="video/webm" />
+                <source src={selectedVideo} type="video/quicktime" />
+                <source src={selectedVideo} type="video/x-msvideo" />
+                Your browser does not support the video tag.
+              </video>
+            )
           )}
         </Modal.Body>
         <Modal.Footer>
