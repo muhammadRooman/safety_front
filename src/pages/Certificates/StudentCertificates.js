@@ -148,6 +148,11 @@ export default function StudentCertificates() {
     </Badge>
   </div>
 
+  {/* Certificate ID for copy/verification */}
+  <div className="fw-bold small text-muted mb-3">
+    Certificate ID: {r.certificateId || "—"}
+  </div>
+
   {/* DESCRIPTION */}
  <p
   className="small flex-grow-1"

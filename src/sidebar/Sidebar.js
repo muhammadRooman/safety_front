@@ -24,7 +24,7 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { LuMessageSquareText, LuNotebookPen } from "react-icons/lu";
 import { IoPersonAddSharp } from 'react-icons/io5';
-
+import { MdOutlineVerifiedUser } from "react-icons/md";
 const Sidebar = () => {
   const { t } = useTranslation();
   const location = useLocation();
@@ -34,6 +34,8 @@ const Sidebar = () => {
   const [studentHasAlert, setStudentHasAlert] = useState(false);
   const token = useSelector((state) => state.auth.token);
   const studentId = useSelector((state) => state.auth.id);
+
+ // { verified: boolean, message: string }
 
   const [user, setUser] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -70,6 +72,7 @@ const Sidebar = () => {
     const hasStoredAlert = localStorage.getItem(`studentMessagesAlert_${studentId}`) === "true";
     setStudentHasAlert(hasStoredAlert);
   };
+
 
   // Fetch user
   useEffect(() => {
@@ -560,6 +563,16 @@ const Sidebar = () => {
               >
                 <FaAward size={25} className="me-3" /> Certificates
               </Nav.Link>
+              <Nav.Link
+                as={Link}
+                to="/dashboard/verification"
+                className={`sidebar-link ${isActive('/dashboard/verification') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <MdOutlineVerifiedUser  size={25} className="me-3" /> Verification
+              </Nav.Link>
+
+            
             </>
           )}
 

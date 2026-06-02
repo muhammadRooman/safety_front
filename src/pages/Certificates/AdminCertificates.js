@@ -36,11 +36,13 @@ export default function AdminCertificates() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [studentId, setStudentId] = useState("");
+  const [certificateId, setCertificateId] = useState("");
   const [pdfFile, setPdfFile] = useState(null);
 
   // ✅ Separate filters
   const [nameFilter, setNameFilter] = useState("");
   const [emailFilter, setEmailFilter] = useState("");
+  const [certificateIdFilter, setCertificateIdFilter] = useState("");
 
   const fileRef = useRef(null);
 
@@ -84,7 +86,7 @@ export default function AdminCertificates() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!title || !studentId || !pdfFile) {
+    if (!title || !studentId || !certificateId || !pdfFile) {
       return toast.error("All fields required");
     }
 
@@ -95,6 +97,7 @@ export default function AdminCertificates() {
       fd.append("title", title);
       fd.append("description", description);
       fd.append("studentId", studentId);
+      fd.append("certificateId", certificateId);
       fd.append("pdf", pdfFile);
 
       await axios.post(`${API_BASE}/admin/certificates`, fd, {
@@ -110,6 +113,7 @@ export default function AdminCertificates() {
       setTitle("");
       setDescription("");
       setStudentId("");
+      setCertificateId("");
       setPdfFile(null);
 
       if (fileRef.current) {
@@ -147,9 +151,14 @@ export default function AdminCertificates() {
       ?.toLowerCase()
       .includes(emailFilter.toLowerCase());
 
+    const certificateIdMatch = r.certificateId
+      ?.toLowerCase()
+      .includes(certificateIdFilter.toLowerCase());
+
     return (
       (!nameFilter || nameMatch) &&
-      (!emailFilter || emailMatch)
+      (!emailFilter || emailMatch) &&
+      (!certificateIdFilter || certificateIdMatch)
     );
   });
 
@@ -274,6 +283,13 @@ export default function AdminCertificates() {
                     onChange={(e) => setDescription(e.target.value)}
                   />
 
+                  <Form.Control
+                    className="mb-3"
+                    placeholder="Certificate ID"
+                    value={certificateId}
+                    onChange={(e) => setCertificateId(e.target.value)}
+                  />
+
                   <Form.Select
                     className="mb-3"
                     value={studentId}
@@ -318,7 +334,7 @@ export default function AdminCertificates() {
 
                 {/* ✅ FILTERS */}
                 <Row className="mb-3">
-                  <Col md={6}>
+                  <Col md={4}>
                     <Form.Control
                       placeholder="🔍 Filter by name..."
                       value={nameFilter}
@@ -326,11 +342,18 @@ export default function AdminCertificates() {
                     />
                   </Col>
 
-                  <Col md={6}>
+                  <Col md={4}>
                     <Form.Control
                       placeholder="📧 Filter by email..."
                       value={emailFilter}
                       onChange={(e) => setEmailFilter(e.target.value)}
+                    />
+                  </Col>
+                  <Col md={4}>
+                    <Form.Control
+                      placeholder="📧 Filter by Certificate ID..."
+                      value={certificateIdFilter}
+                      onChange={(e) => setCertificateIdFilter(e.target.value)}
                     />
                   </Col>
                 </Row>
@@ -341,6 +364,7 @@ export default function AdminCertificates() {
                     <thead className="table-light">
                       <tr>
                         <th>Cr_Name</th>
+                        <th>Certificate ID</th>
                         <th>Students</th>
                         <th>Emails</th>
                         <th>Issue_Date</th>
@@ -354,6 +378,7 @@ export default function AdminCertificates() {
                       {filteredRows.map((r) => (
                         <tr key={r._id}>
                           <td>{r.title}</td>
+                          <td>{r.certificateId}</td>
                           <td>{r.student?.name}</td>
                           <td>{r.student?.email}</td>
                           <td>

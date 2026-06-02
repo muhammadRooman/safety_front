@@ -15,6 +15,7 @@ import OHSCourse from "../pages/OHSCourses/List";
 import StudentRegister from "../pages/EnrollStudent/StudentRegister";
 import StudentLiveClass from "../pages/LiveClass/StudentLiveClass";
 import AdminLiveClass from "../pages/LiveClass/AdminLiveClass";
+import Verification from "../pages/Certificates/Verification";
 // import GoogleMeet from "../pages/GoogleMeet";
 
 const Signup = lazy(() => import("../pages/Signup"));
@@ -162,6 +163,14 @@ const AppRoutes = () => {
             element={
               <StudentRoute>
                 <StudentCertificates />
+              </StudentRoute>
+            }
+          />
+          <Route
+            path="dashboard/verification"
+            element={
+              <StudentRoute>
+                <Verification />
               </StudentRoute>
             }
           />
